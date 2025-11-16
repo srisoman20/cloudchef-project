@@ -130,11 +130,13 @@ async function generateRecipe() {
     const data = await response.json();
 
     output.innerHTML = `
-      <h3>${data.title || "Generated Recipe"}</h3>
-      <p><strong>Ingredients:</strong> ${data.ingredients || JSON.stringify(data.received_event)}</p>
-      <p><strong>Steps:</strong> ${data.steps || "No steps returned (test mode)"}</p>
-      <p><strong>Message:</strong> ${data.message || ""}</p>
-    `;
+    <h3>${data.title}</h3>
+    <p><strong>Ingredients:</strong> ${data.ingredients}</p>
+    <p><strong>Steps:</strong> ${data.steps}</p>
+    <p><strong>Nutrition:</strong> ${data.nutrition}</p>
+    <p><strong>Message:</strong> ${data.message}</p>
+  `;
+  
   } catch (err) {
     console.error(err);
     output.innerHTML = "❌ Error calling CloudChef API.";
@@ -162,4 +164,3 @@ async function analyzeImage() {
     output.innerHTML = `Detected: ${detected.join(", ")}`;
   }, 1200);
 }
-
