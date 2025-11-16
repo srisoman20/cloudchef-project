@@ -14,6 +14,24 @@
       Transform your ingredients into creative, AI-powered recipes.
     </p>
 
+    <!-- 🔐 LOGIN BUTTON ADDED HERE -->
+    <button
+      onclick="window.location.href='https://us-west-1dwttcm4p9.auth.us-west-1.amazoncognito.com/login?client_id=12lhjh1sc8pp2crquvgalf9bl2&response_type=code&scope=email+openid+phone&redirect_uri=https://main.d1o5l2tvmd4zsn.amplifyapp.com'"
+      style="
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+      "
+    >
+      🔐 Login with CloudChef
+    </button>
+
     <!-- Ingredient Input -->
     <input id="ingredients" type="text" placeholder="e.g., tomato, pasta, cheese" />
 
@@ -33,3 +51,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+
