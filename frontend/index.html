@@ -1,65 +1,39 @@
-// =============================
-// CONFIGURATION
-// =============================
-const CLIENT_ID = "12lhjh1sc8pp2crquvgalf9bl2";
-const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
-const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>CloudChef</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-// =============================
-// ELEMENTS
-// =============================
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const welcomeMessage = document.getElementById("welcomeMessage");
+  <div class="container">
+    <h1>CloudChef+</h1>
+    <p class="subtitle">AI-powered recipes & ingredient detection</p>
 
-// =============================
-// LOGIN (redirect to Cognito Hosted UI)
-// =============================
-loginBtn.onclick = () => {
-    const url =
-        `${COGNITO_DOMAIN}/login` +
-        `?response_type=code` +
-        `&client_id=${CLIENT_ID}` +
-        `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    <!-- Auth buttons -->
+    <div style="text-align:right; margin-bottom:15px;">
+      <button id="loginBtn">Login</button>
+      <button id="logoutBtn" style="display:none;">Logout</button>
+    </div>
 
-    window.location.href = url;
-};
+    <!-- Welcome text -->
+    <p id="welcomeMessage"></p>
 
-// =============================
-// LOGOUT (redirect to Cognito logout)
-// =============================
-logoutBtn.onclick = () => {
-    const url =
-        `${COGNITO_DOMAIN}/logout` +
-        `?client_id=${CLIENT_ID}` +
-        `&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    <input type="file" id="imageUpload" />
+    <input type="text" id="ingredients" placeholder="Enter ingredients..." />
 
-    window.location.href = url;
-};
+    <div class="buttons">
+      <button onclick="generateRecipe()">Generate Recipe</button>
+      <button onclick="analyzeImage()">Detect Ingredients</button>
+    </div>
 
-// =============================
-// PROCESS ?code= FROM COGNITO
-// =============================
-function getQueryParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
-}
+    <div id="output" class="output-box"></div>
+  </div>
 
-const code = getQueryParam("code");
+  <!-- Load your JavaScript -->
+  <script src="app.js"></script>
 
-if (code) {
-    welcomeMessage.textContent = "Processing login…";
-    loginBtn.style.display = "none";
-
-    // After login, hide login button, show logout
-    logoutBtn.style.display = "inline-block";
-
-    // Fake “user retrieval” (Cognito requires token exchange backend),
-    // so we'll simply show a welcome message for now:
-    welcomeMessage.textContent = "Welcome! You are now logged in 🎉";
-} else {
-    // Not logged in
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
-}
+</body>
+</html>
 
