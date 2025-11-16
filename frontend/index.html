@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudChef</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h1>🥘 CloudChef</h1>
+    <p class="subtitle">
+      Transform your ingredients into creative, AI-powered recipes.
+    </p>
+
+    <!-- Ingredient Input -->
+    <input id="ingredients" type="text" placeholder="e.g., tomato, pasta, cheese" />
+
+    <!-- Image Upload -->
+    <input type="file" id="imageUpload" accept="image/*" />
+
+    <!-- Buttons -->
+    <div class="buttons">
+      <button onclick="analyzeImage()">Analyze Image</button>
+      <button onclick="generateRecipe()">Generate Recipe</button>
+    </div>
+
+    <!-- Output Area -->
+    <div id="output" class="output-box"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
