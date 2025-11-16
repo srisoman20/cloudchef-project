@@ -1,156 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CloudChef</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f7f7f7;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Top right buttons */
-        .top-buttons {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            background-color: #1a73e8;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-left: 10px;
-            font-size: 14px;
-        }
-
-        .btn.logout {
-            background-color: #e84a4a;
-        }
-
-        .container {
-            max-width: 650px;
-            margin: 120px auto;
-            background: white;
-            padding: 30px;
-            border-radius: 14px;
-            text-align: center;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.08);
-        }
-
-        h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-            color: #ea6b2d;
-        }
-
-        input[type="text"], input[type="file"] {
-            width: 80%;
-            padding: 12px;
-            margin: 12px 0;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-
-        .action-btn {
-            background-color: #ea6b2d;
-            color: white;
-            padding: 14px 22px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            margin: 10px;
-            font-size: 16px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CloudChef</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+  <div class="container">
+    <h1>🥘 CloudChef</h1>
+    <p class="subtitle">
+      Transform your ingredients into creative, AI-powered recipes.
+    </p>
 
-    <!-- Top right corner buttons -->
-    <div class="top-buttons">
-        <span id="welcomeText" style="display:none; font-weight:bold; margin-right: 10px;"></span>
-        <button id="loginBtn" class="btn" onclick="login()">Log In</button>
-        <button id="logoutBtn" class="btn logout" onclick="logout()" style="display:none;">Log Out</button>
+    <!-- 🔐 LOGIN BUTTON ADDED HERE -->
+    <button
+      onclick="window.location.href='https://us-west-1dwttcm4p9.auth.us-west-1.amazoncognito.com/login?client_id=12lhjh1sc8pp2crquvgalf9bl2&response_type=code&scope=email+openid+phone&redirect_uri=https://main.d1o5l2tvmd4zsn.amplifyapp.com'"
+      style="
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        background-color: #4285f4;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+      "
+    >
+      🔐 Login with CloudChef
+    </button>
+
+    <!-- Ingredient Input -->
+    <input id="ingredients" type="text" placeholder="e.g., tomato, pasta, cheese" />
+
+    <!-- Image Upload -->
+    <input type="file" id="imageUpload" accept="image/*" />
+
+    <!-- Buttons -->
+    <div class="buttons">
+      <button onclick="analyzeImage()">Analyze Image</button>
+      <button onclick="generateRecipe()">Generate Recipe</button>
     </div>
 
-    <div class="container">
-        <h1>🔍 CloudChef</h1>
-        <p>Transform your ingredients into creative, AI-powered recipes.</p>
+    <!-- Output Area -->
+    <div id="output" class="output-box"></div>
+  </div>
 
-        <input type="text" placeholder="e.g., tomato, pasta, cheese" />
-
-        <br />
-
-        <input type="file" />
-
-        <br />
-
-        <button class="action-btn">Analyze Image</button>
-        <button class="action-btn">Generate Recipe</button>
-    </div>
-
-
-<script>
-    /* ----------------------------
-       YOUR COGNITO CONFIG (correct)
-       ---------------------------- */
-    const clientId = "12ljhj1sc8pp2crquvgalf9bl2";
-    const domain = "https://us-west-1dwttcm4p9.auth.us-west-1.amazoncognito.com";
-    const redirectUri = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
-
-    /* Start Login */
-    function login() {
-        const loginUrl =
-            `${domain}/login?client_id=${clientId}` +
-            `&response_type=code` +
-            `&scope=email+openid+profile` +
-            `&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-        window.location.href = loginUrl;
-    }
-
-    /* Logout */
-    function logout() {
-        const logoutUrl =
-            `${domain}/logout?client_id=${clientId}` +
-            `&logout_uri=${encodeURIComponent(redirectUri)}`;
-
-        window.location.href = logoutUrl;
-    }
-
-    /* Extract URL Query Param */
-    function getQueryParam(param) {
-        return new URLSearchParams(window.location.search).get(param);
-    }
-
-    /* After redirect back from Cognito */
-    function checkLogin() {
-        const code = getQueryParam("code");
-        if (!code) return; // Not logged in
-
-        // Since you didn’t ask for backend token exchange,
-        // we simply show user as logged in.
-        const welcomeText = document.getElementById("welcomeText");
-        const loginBtn = document.getElementById("loginBtn");
-        const logoutBtn = document.getElementById("logoutBtn");
-
-        welcomeText.textContent = "Welcome!";
-        welcomeText.style.display = "inline-block";
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
-    }
-
-    window.onload = checkLogin;
-</script>
-
+  <script src="app.js"></script>
 </body>
 </html>
 
