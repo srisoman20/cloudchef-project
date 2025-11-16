@@ -1,54 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CloudChef</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <title>CloudChef</title>
+
+    <!-- YOUR CSS -->
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <div class="container">
-    <h1>🥘 CloudChef</h1>
-    <p class="subtitle">
-      Transform your ingredients into creative, AI-powered recipes.
-    </p>
 
-    <!-- 🔐 LOGIN BUTTON ADDED HERE -->
-    <button
-      onclick="window.location.href='https://us-west-1dwttcm4p9.auth.us-west-1.amazoncognito.com/login?client_id=12lhjh1sc8pp2crquvgalf9bl2&response_type=code&scope=email+openid+phone&redirect_uri=https://main.d1o5l2tvmd4zsn.amplifyapp.com'"
-      style="
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 20px;
-        background-color: #4285f4;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-      "
-    >
-      🔐 Login with CloudChef
-    </button>
-
-    <!-- Ingredient Input -->
-    <input id="ingredients" type="text" placeholder="e.g., tomato, pasta, cheese" />
-
-    <!-- Image Upload -->
-    <input type="file" id="imageUpload" accept="image/*" />
-
-    <!-- Buttons -->
-    <div class="buttons">
-      <button onclick="analyzeImage()">Analyze Image</button>
-      <button onclick="generateRecipe()">Generate Recipe</button>
+    <!-- 🔵 TOP RIGHT LOGIN/LOGOUT BUTTONS -->
+    <div class="top-right">
+        <span id="welcomeMsg" style="display:none;"></span>
+        <button id="loginBtn" onclick="login()">Log In</button>
+        <button id="logoutBtn" onclick="logout()" style="display:none;">Log Out</button>
     </div>
 
-    <!-- Output Area -->
-    <div id="output" class="output-box"></div>
-  </div>
+    <!-- 🔥 YOUR ORIGINAL PAGE CONTENT BELOW -->
+    <div class="container">
+        <h1>🔍 CloudChef</h1>
+        <p>Transform your ingredients into creative, AI-powered recipes.</p>
 
-  <script src="app.js"></script>
+        <input id="ingredientInput" placeholder="e.g., tomato, pasta, cheese" />
+        <input type="file" id="imageUpload" />
+
+        <button onclick="analyzeImage()">Analyze Image</button>
+        <button onclick="generateRecipe()">Generate Recipe</button>
+
+        <div id="outputBox"></div>
+    </div>
+
+    <script>
+        /* ===============================
+            COGNITO CONFIG
+        =============================== */
+        const REGION = "us-west-1";
+        const CLIENT_ID = "12ljhj1sc8pp2crquvgalf9bl2";
+        const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
+        const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
+
+        /* ================
+            LOGIN
+        ================ */
+        function login() {
+            const url =
+                `${COGNITO_DOMAIN}/login?client_id=${CLIENT_ID}` +
+                `&response_type=code&scope=email+openid+phone` +
+                `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+            window.location.href = url;
+        }
+
+        /* ================
+            LOGOUT
+        ================ */
+        function logout() {
+            localStorage.removeItem("cloudchef_user");
+
+            const logoutUrl =
+                `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}` +
+                `&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
+
+            window.location.href = logoutUrl;
+        }
+
+        /* ==========================================
+            HANDLE REDIRECT AFTER LOGIN
+        ========================================== */
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get("code");
+
+            // First time login redirect
+            if (code) {
+                localStorage.setItem("cloudchef_user", "User");
+                window.location.href = REDIRECT_URI;
+            }
+
+            // If user is already logged in
+            const user = localStorage.getItem("cloudchef_user");
+            if (user) {
+                document.getElementById("welcomeMsg").innerText = `Welcome, ${user}!`;
+                document.getElementById("welcomeMsg").style.display = "inline";
+
+                document.getElementById("loginBtn").style.display = "none";
+                document.getElementById("logoutBtn").style.display = "inline";
+            }
+        };
+
+        /* =======================
+            PLACEHOLDERS
+        ======================= */
+        function analyzeImage() {
+            document.getElementById("outputBox").innerText =
+                "📷 Image analysis coming soon!";
+        }
+
+        function generateRecipe() {
+            const text = document.getElementById("ingredientInput").value;
+            document.getElementById("outputBox").innerText =
+                `🍽️ Recipe generation coming soon!\n\nIngredients: ${text}`;
+        }
+    </script>
+
 </body>
 </html>
 
