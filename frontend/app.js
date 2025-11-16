@@ -108,22 +108,37 @@ function renderIngredients() {
     .join("");
 }
 
-
-
 // ============================
-// GENERATE RECIPE (uses mock API for now)
+// GENERATE RECIPE (real API call)
 // ============================
+const API_GENERATE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/generate";
+
 async function generateRecipe() {
   const output = document.getElementById("output");
   output.innerHTML = "⏳ Generating recipe...";
 
-  setTimeout(() => {
+  try {
+    const response = await fetch(API_GENERATE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ingredients: ingredientArray.map(i => i.name),
+        quantity: ingredientArray.map(i => i.qty)
+      })
+    });
+
+    const data = await response.json();
+
     output.innerHTML = `
-      <h3>Sample Recipe</h3>
-      <p>Using: ${ingredientArray.map(i => i.name).join(", ")}</p>
-      <p>⭐ Full API integration coming next!</p>
+      <h3>${data.title || "Generated Recipe"}</h3>
+      <p><strong>Ingredients:</strong> ${data.ingredients || JSON.stringify(data.received_event)}</p>
+      <p><strong>Steps:</strong> ${data.steps || "No steps returned (test mode)"}</p>
+      <p><strong>Message:</strong> ${data.message || ""}</p>
     `;
-  }, 1200);
+  } catch (err) {
+    console.error(err);
+    output.innerHTML = "❌ Error calling CloudChef API.";
+  }
 }
 
 
