@@ -9,53 +9,69 @@
 
 <body>
 
-  <!-- ===================== NAVBAR ===================== -->
-  <div class="navbar">
-    <div class="nav-left">
-      <span class="logo">CloudChef</span>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">CloudChef</div>
+
+    <nav>
+      <button id="nav-generate" class="nav-btn active">Generate Recipes</button>
+      <button id="nav-saved" class="nav-btn">Saved Recipes</button>
+      <button id="nav-grocery" class="nav-btn">Grocery List</button>
+    </nav>
+
+    <!-- FIXED AUTH BUTTONS -->
+    <div class="auth-buttons">
+      <span id="welcomeMessage"></span>
+      <button id="loginBtn" class="auth-btn">Sign In</button>
+      <button id="logoutBtn" class="auth-btn" style="display:none;">Sign Out</button>
     </div>
+  </header>
 
-    <div class="nav-right">
-      <button id="loginBtn" class="nav-btn">Sign In</button>
-      <button id="logoutBtn" class="nav-btn logout">Sign Out</button>
-    </div>
-  </div>
+  <!-- PAGE WRAPPER -->
+  <div class="page-container">
 
-  <!-- ===================== MAIN CONTAINER ===================== -->
-  <div class="main-container">
+    <!-- MAIN RECIPE GENERATOR PAGE -->
+    <div id="mainPage" class="content-card">
+      <h2>What's in your fridge?</h2>
 
-    <div class="card">
+      <!-- FILE UPLOAD -->
+      <input id="imageUpload" type="file" />
 
-      <h2 class="section-title">What’s in your fridge?</h2>
-
-      <!-- File Upload -->
-      <input type="file" id="imageUpload" />
-
-      <!-- Ingredients Text Box -->
-      <input
-        type="text"
-        id="ingredients"
-        placeholder="Enter ingredients (e.g., tomato, pasta, cheese)"
-      />
-
-      <!-- BUTTON ROW -->
-      <div class="button-row">
-        <button class="primary-btn" onclick="generateRecipe()">Generate Recipe</button>
-        <button class="secondary-btn" onclick="analyzeImage()">Detect Ingredients</button>
+      <!-- INGREDIENT + QUANTITY ROW -->
+      <div class="ingredient-row">
+        <input id="ingredientName" type="text" placeholder="Ingredient (e.g., tomato)">
+        <input id="ingredientQty" type="text" placeholder="Quantity">
+        <button class="add-btn" onclick="addIngredient()">+</button>
       </div>
 
-      <!-- OUTPUT BOX -->
+      <!-- INGREDIENT LIST -->
+      <ul id="ingredientList"></ul>
+
+      <!-- BUTTONS -->
+      <div class="button-row">
+        <button onclick="generateRecipe()" class="primary-btn">Generate Recipe</button>
+        <button onclick="analyzeImage()" class="outline-btn">Detect Ingredients</button>
+      </div>
+
+      <!-- OUTPUT -->
       <div id="output" class="output-box"></div>
+    </div>
 
-      <!-- Welcome Message -->
-      <p id="welcomeMessage" class="welcome-text"></p>
+    <!-- SAVED RECIPES PAGE -->
+    <div id="savedPage" class="content-card hidden">
+      <h2>Saved Recipes</h2>
+      <p class="empty-msg">No saved recipes yet</p>
+    </div>
 
+    <!-- GROCERY PAGE -->
+    <div id="groceryPage" class="content-card hidden">
+      <h2>Grocery List</h2>
+      <p class="empty-msg">Your grocery list is empty</p>
     </div>
 
   </div>
 
   <script src="app.js"></script>
-
 </body>
 </html>
 
