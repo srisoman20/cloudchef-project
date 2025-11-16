@@ -127,21 +127,29 @@ async function generateRecipe() {
       })
     });
 
-    const data = await response.json();
+    const apiResponse = await response.json();
+
+    // apiResponse = { statusCode, headers, body: "string" }
+    let data = apiResponse.body;
+
+    if (typeof data === "string") {
+      data = JSON.parse(data);
+    }
 
     output.innerHTML = `
-    <h3>${data.title}</h3>
-    <p><strong>Ingredients:</strong> ${data.ingredients}</p>
-    <p><strong>Steps:</strong> ${data.steps}</p>
-    <p><strong>Nutrition:</strong> ${data.nutrition}</p>
-    <p><strong>Message:</strong> ${data.message}</p>
-  `;
-  
+      <h3>${data.title}</h3>
+      <p><strong>Ingredients:</strong> ${data.ingredients}</p>
+      <p><strong>Steps:</strong> ${data.steps}</p>
+      <p><strong>Nutrition:</strong> ${data.nutrition}</p>
+      <p><strong>Message:</strong> ${data.message}</p>
+    `;
+
   } catch (err) {
-    console.error(err);
-    output.innerHTML = "❌ Error calling CloudChef API.";
+    console.error("ERROR:", err);
+    output.innerHTML = `<p style="color:red;">❌ Error calling CloudChef API.</p>`;
   }
 }
+
 
 
 
