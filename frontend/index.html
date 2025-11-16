@@ -1,199 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CloudChef</title>
+
+    <!-- Cognito Hosted UI Domain -->
+    <script>
+        const cognitoDomain = "https://us-west-1dwttcm4p9.auth.us-west-1.amazoncognito.com";
+        const clientId = "12ljhj1sc8pp2crquvgqlf9bl2";
+        const redirectUri = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/?loggedin=true";
+        const logoutRedirect = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
+    </script>
 
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #f9fafb;
+            background: #f7f9fc;
+            margin: 0;
+        }
+
+        /* TOP NAV */
+        #topnav {
+            width: 100%;
             display: flex;
-            justify-content: center;
-            padding: 40px;
+            justify-content: flex-end;
+            padding: 15px;
         }
 
-        .container {
-            width: 600px;
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-
-        .button {
-            background: #ef6c3a;
+        .nav-btn {
+            background: #2563eb;
             color: white;
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 45%;
-            font-size: 16px;
+            padding: 10px 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 15px;
         }
 
-        .button:hover {
-            background: #d95a2f;
+        #welcomeMessage {
+            margin-right: auto;
+            font-size: 18px;
+            font-weight: bold;
         }
 
-        #authBar button {
-            font-size: 14px;
+        /* MAIN CONTAINER */
+        .container {
+            max-width: 650px;
+            background: white;
+            margin: 40px auto;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
         }
-
     </style>
 </head>
 <body>
 
-<!-- 🔐 AUTH BAR (TOP RIGHT) -->
-<div id="authBar" style="position:absolute; top:20px; right:20px; display:flex; gap:10px; align-items:center;">
-    <span id="welcomeMsg" style="font-weight:bold; display:none;"></span>
+    <!-- TOP NAV BAR -->
+    <div id="topnav">
+        <span id="welcomeMessage"></span>
 
-    <button id="loginBtn" onclick="login()" 
-        style="padding:8px 15px; background:#2563eb; color:white; border:none; border-radius:6px; cursor:pointer;">
-        Log In
-    </button>
-
-    <button id="logoutBtn" onclick="logout()" 
-        style="padding:8px 15px; background:#ef4444; color:white; border:none; border-radius:6px; cursor:pointer; display:none;">
-        Log Out
-    </button>
-</div>
-
-
-<!-- 🌤 MAIN UI -->
-<div class="container">
-    <h1 style="color:#ef6c3a; font-size:42px; margin-bottom:10px;">🍳 CloudChef</h1>
-    <p style="color:#555; margin-bottom:30px;">
-        Transform your ingredients into creative, AI-powered recipes.
-    </p>
-
-    <button onclick="login()" id="bigLoginBtn"
-        style="background:#2563eb; color:white; padding:15px; border:none; border-radius:8px; width:100%; font-size:18px; margin-bottom:25px;">
-        🔐 Login with CloudChef
-    </button>
-
-    <input id="ingredients" type="text" placeholder="e.g., tomato, pasta, cheese"
-        style="width:100%; padding:12px; border-radius:6px; border:1px solid #ddd; margin-bottom:15px;">
-
-    <input id="imageUpload" type="file"
-        style="width:100%; padding:12px; border-radius:6px; border:1px solid #ddd; margin-bottom:15px;">
-
-    <div style="display:flex; justify-content:space-between; margin-top:20px;">
-        <button class="button">Analyze Image</button>
-        <button class="button">Generate Recipe</button>
+        <a id="loginBtn" class="nav-btn" href="#">Log In</a>
+        <a id="logoutBtn" class="nav-btn" href="#" style="background:#dc2626; display:none;">Log Out</a>
     </div>
 
-    <div id="output" 
-        style="margin-top:30px; background:#f3f4f6; height:200px; border-radius:8px; padding:20px; text-align:left;">
+    <div class="container">
+        <h1>🍳 CloudChef</h1>
+        <p>Transform your ingredients into creative, AI-powered recipes.</p>
+
+        <!-- YOUR EXISTING UI STARTS HERE -->
+        <input type="text" placeholder="e.g., tomato, pasta, cheese" class="input"/><br><br>
+        <input type="file" /><br><br>
+
+        <button class="btn">Analyze Image</button>
+        <button class="btn">Generate Recipe</button>
+
+        <div id="resultBox"></div>
     </div>
-</div>
 
+    <script>
+        // Build Hosted UI URLs
+        const loginUrl =
+            `${cognitoDomain}/login?client_id=${clientId}&response_type=code&scope=email openid phone&redirect_uri=${encodeURIComponent(redirectUri)}`;
 
+        const logoutUrl =
+            `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutRedirect)}`;
 
-<!-- 🔐 AUTH LOGIC -->
-<script>
+        // Assign URLs to buttons
+        document.getElementById("loginBtn").href = loginUrl;
+        document.getElementById("logoutBtn").href = logoutUrl;
 
-    /* ------------------------------
-       UPDATE THESE 2 VALUES ONLY
-    -------------------------------*/
-    const clientId = "12ljhj1sc8pp2crquvgvgalf9bl2";   // ✔ your Cognito App Client ID
-    const domain = "us-west-1dwttcm4p9.auth.us-west-1.amazoncognito.com";  // ✔ your Hosted UI domain
-    const redirectUri = "https://main.d1o5l2tvmd4zsn.amplifyapp.com";  // ✔ your Amplify site URL
-    /* ------------------------------ */
+        // Detect if user returned after login
+        const urlParams = new URLSearchParams(window.location.search);
 
+        if (urlParams.has("loggedin")) {
+            const username = urlParams.get("username") || "User";
 
-    // 🔐 Redirect user to Hosted UI sign-in
-    function login() {
-        const url =
-            `https://${domain}/oauth2/authorize?` +
-            `client_id=${clientId}` +
-            `&response_type=token` +
-            `&scope=email+openid+profile` +
-            `&redirect_uri=${redirectUri}`;
+            document.getElementById("welcomeMessage").innerText = `Welcome ${username}!`;
 
-        window.location.href = url;
-    }
-
-    // 🔐 Logout (Cognito sign-out + redirect back)
-    function logout() {
-        const url =
-            `https://${domain}/logout?` +
-            `client_id=${clientId}` +
-            `&logout_uri=${redirectUri}`;
-
-        sessionStorage.removeItem("id_token");
-        sessionStorage.removeItem("username");
-
-        window.location.href = url;
-    }
-
-    // 🔍 Parse ID token from URL after login
-    function getTokenFromUrl() {
-        if (window.location.hash.includes("id_token")) {
-            const hash = window.location.hash.substring(1);
-            const params = new URLSearchParams(hash);
-            return params.get("id_token");
+            document.getElementById("loginBtn").style.display = "none";
+            document.getElementById("logoutBtn").style.display = "inline-block";
         }
-        return null;
-    }
-
-    // 🧩 Decode JWT to extract username/email
-    function decodeJwt(token) {
-        const base64Url = token.split(".")[1];
-        const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-        return JSON.parse(atob(base64));
-    }
-
-    // 🔧 Update UI based on login state
-    function updateUI() {
-        const token = sessionStorage.getItem("id_token");
-        const username = sessionStorage.getItem("username");
-
-        const loginBtn = document.getElementById("loginBtn");
-        const logoutBtn = document.getElementById("logoutBtn");
-        const bigLoginBtn = document.getElementById("bigLoginBtn");
-        const welcomeMsg = document.getElementById("welcomeMsg");
-
-        if (token) {
-            loginBtn.style.display = "none";
-            bigLoginBtn.style.display = "none";
-
-            logoutBtn.style.display = "inline-block";
-            welcomeMsg.style.display = "inline-block";
-            welcomeMsg.innerText = `Welcome, ${username}!`;
-        } else {
-            loginBtn.style.display = "inline-block";
-            logoutBtn.style.display = "none";
-            bigLoginBtn.style.display = "block";
-            welcomeMsg.style.display = "none";
-        }
-    }
-
-    // 🚀 When page loads
-    window.onload = () => {
-        const token = getTokenFromUrl();
-
-        if (token) {
-            const decoded = decodeJwt(token);
-
-            const username =
-                decoded["cognito:username"] ||
-                decoded["email"] ||
-                "User";
-
-            sessionStorage.setItem("id_token", token);
-            sessionStorage.setItem("username", username);
-
-            // Clean URL after redirect
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
-        updateUI();
-    }
-
-</script>
+    </script>
 
 </body>
 </html>
