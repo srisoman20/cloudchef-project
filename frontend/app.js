@@ -1,98 +1,33 @@
 // ============================
-// YOUR EXISTING CODE (UNCHANGED)
+// COGNITO CONFIG
 // ============================
-
-// --- API URLs (replace with your deployed endpoints later) ---
-const API_GENERATE = "https://your-api-id.execute-api.us-east-1.amazonaws.com/dev/generate";
-const API_ANALYZE = "https://your-api-id.execute-api.us-east-1.amazonaws.com/dev/analyze";
-
-async function generateRecipe() {
-  const ingredients = document.getElementById("ingredients").value;
-  const outputDiv = document.getElementById("output");
-  outputDiv.innerHTML = "⏳ Generating recipe...";
-
-  try {
-    const res = await fetch(API_GENERATE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ingredients }),
-    });
-    const data = await res.json();
-
-    outputDiv.innerHTML = `
-      <h3>${data.title || "Generated Recipe"}</h3>
-      <p><strong>Ingredients:</strong> ${data.ingredients}</p>
-      <p><strong>Steps:</strong> ${data.steps}</p>
-      <p><strong>Nutrition:</strong> ${data.nutrition || "Approx. info unavailable"}</p>
-    `;
-  } catch (err) {
-    outputDiv.innerHTML = "❌ Error generating recipe.";
-    console.error(err);
-  }
-}
-
-async function analyzeImage() {
-  const fileInput = document.getElementById("imageUpload");
-  const outputDiv = document.getElementById("output");
-
-  if (!fileInput.files.length) {
-    outputDiv.innerHTML = "⚠️ Please select an image first.";
-    return;
-  }
-
-  const file = fileInput.files[0];
-  outputDiv.innerHTML = "🔍 Analyzing image...";
-
-  // Mock detection (no Rekognition in free tier)
-  try {
-    const detected = ["tomato", "onion", "pasta"];
-    document.getElementById("ingredients").value = detected.join(", ");
-    outputDiv.innerHTML = `✅ Detected ingredients: ${detected.join(", ")}`;
-  } catch (err) {
-    outputDiv.innerHTML = "❌ Error analyzing image.";
-    console.error(err);
-  }
-}
-
-
-
-// ============================
-// COGNITO LOGIN SYSTEM
-// ============================
-
-// Your Cognito config:
 const CLIENT_ID = "12lhjh1sc8pp2crquvgalf9bl2";
 const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
-// Buttons
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
-// LOGIN → redirect to Hosted UI
+// LOGIN
 loginBtn.onclick = () => {
-  const url =
-    `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+  const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
   window.location.href = url;
 };
 
-// LOGOUT → redirect back to site
+// LOGOUT
 logoutBtn.onclick = () => {
-  const url =
-    `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
+  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
   window.location.href = url;
 };
 
-// Helper: read ?code= from URL
-function getQueryParam(name) {
-  const url = new URL(window.location.href);
-  return url.searchParams.get(name);
+// READ LOGIN CODE
+function getQueryParam(n) {
+  return new URL(window.location.href).searchParams.get(n);
 }
 
 const code = getQueryParam("code");
 
-// After successful login
 if (code) {
   welcomeMessage.textContent = "Welcome! You are logged in 🎉";
   loginBtn.style.display = "none";
@@ -100,5 +35,116 @@ if (code) {
 } else {
   loginBtn.style.display = "inline-block";
   logoutBtn.style.display = "none";
+}
+
+
+
+// ============================
+// PAGE NAVIGATION
+// ============================
+const mainPage = document.getElementById("mainPage");
+const savedPage = document.getElementById("savedPage");
+const groceryPage = document.getElementById("groceryPage");
+
+document.getElementById("nav-generate").onclick = () => showPage("main");
+document.getElementById("nav-saved").onclick = () => showPage("saved");
+document.getElementById("nav-grocery").onclick = () => showPage("grocery");
+
+function showPage(page) {
+  mainPage.classList.add("hidden");
+  savedPage.classList.add("hidden");
+  groceryPage.classList.add("hidden");
+
+  document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+
+  if (page === "main") {
+    mainPage.classList.remove("hidden");
+    document.getElementById("nav-generate").classList.add("active");
+
+  } else if (page === "saved") {
+    savedPage.classList.remove("hidden");
+    document.getElementById("nav-saved").classList.add("active");
+
+  } else if (page === "grocery") {
+    groceryPage.classList.remove("hidden");
+    document.getElementById("nav-grocery").classList.add("active");
+  }
+}
+
+
+
+// ============================
+// INGREDIENT INPUT SYSTEM
+// ============================
+let ingredientArray = [];
+
+function addIngredient() {
+  const name = document.getElementById("ingredientName").value.trim();
+  const qty = document.getElementById("ingredientQty").value.trim();
+
+  if (!name) return;
+
+  ingredientArray.push({ name, qty });
+  renderIngredients();
+
+  document.getElementById("ingredientName").value = "";
+  document.getElementById("ingredientQty").value = "";
+}
+
+function removeIngredient(i) {
+  ingredientArray.splice(i, 1);
+  renderIngredients();
+}
+
+function renderIngredients() {
+  const list = document.getElementById("ingredientList");
+  list.innerHTML = ingredientArray
+    .map((ing, i) => `
+      <li>
+        <span>${ing.name} — <strong>${ing.qty || "1"}</strong></span>
+        <button onclick="removeIngredient(${i})" style="color:red;background:none;border:none;font-size:18px;cursor:pointer;">✗</button>
+      </li>
+    `)
+    .join("");
+}
+
+
+
+// ============================
+// GENERATE RECIPE (uses mock API for now)
+// ============================
+async function generateRecipe() {
+  const output = document.getElementById("output");
+  output.innerHTML = "⏳ Generating recipe...";
+
+  setTimeout(() => {
+    output.innerHTML = `
+      <h3>Sample Recipe</h3>
+      <p>Using: ${ingredientArray.map(i => i.name).join(", ")}</p>
+      <p>⭐ Full API integration coming next!</p>
+    `;
+  }, 1200);
+}
+
+
+
+// ============================
+// MOCK DETECT INGREDIENTS
+// ============================
+async function analyzeImage() {
+  const output = document.getElementById("output");
+  output.innerHTML = "🔍 Detecting ingredients...";
+
+  setTimeout(() => {
+    const detected = ["tomato", "onion", "pasta"];
+
+    detected.forEach(item => {
+      ingredientArray.push({ name: item, qty: "1" });
+    });
+
+    renderIngredients();
+
+    output.innerHTML = `Detected: ${detected.join(", ")}`;
+  }, 1200);
 }
 
