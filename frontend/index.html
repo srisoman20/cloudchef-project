@@ -1,121 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudChef</title>
-    <link rel="stylesheet" href="style.css" />
-</head>
+// =============================
+// CONFIGURATION
+// =============================
+const CLIENT_ID = "12lhjh1sc8pp2crquvgalf9bl2";
+const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
+const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
-<body>
+// =============================
+// ELEMENTS
+// =============================
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const welcomeMessage = document.getElementById("welcomeMessage");
 
-    <!-- 🔹 TOP-RIGHT AUTH BUTTONS -->
-    <div id="auth-buttons" style="position:absolute; top:20px; right:20px;">
-        <button id="loginBtn" style="padding:10px 18px; font-size:16px;">Log In</button>
-        <button id="logoutBtn" style="padding:10px 18px; font-size:16px; display:none;">Log Out</button>
-    </div>
+// =============================
+// LOGIN (redirect to Cognito Hosted UI)
+// =============================
+loginBtn.onclick = () => {
+    const url =
+        `${COGNITO_DOMAIN}/login` +
+        `?response_type=code` +
+        `&client_id=${CLIENT_ID}` +
+        `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
 
-    <!-- 🔹 WELCOME MESSAGE -->
-    <div id="welcomeMessage" style="position:absolute; top:20px; left:20px; font-size:18px; font-weight:bold; display:none;">
-        Welcome, <span id="username"></span>!
-    </div>
+    window.location.href = url;
+};
 
-    <!-- 🔹 MAIN CLOUDCHEF UI -->
-    <div class="container">
-        <h1>🍳 CloudChef</h1>
-        <p>Transform your ingredients into creative, AI-powered recipes.</p>
+// =============================
+// LOGOUT (redirect to Cognito logout)
+// =============================
+logoutBtn.onclick = () => {
+    const url =
+        `${COGNITO_DOMAIN}/logout` +
+        `?client_id=${CLIENT_ID}` +
+        `&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
 
-        <input id="textInput" type="text" placeholder="e.g., tomato, pasta, cheese" />
+    window.location.href = url;
+};
 
-        <input id="imageInput" type="file" />
+// =============================
+// PROCESS ?code= FROM COGNITO
+// =============================
+function getQueryParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
+}
 
-        <div class="button-row">
-            <button id="analyzeBtn">Analyze Image</button>
-            <button id="recipeBtn">Generate Recipe</button>
-        </div>
+const code = getQueryParam("code");
 
-        <div id="output"></div>
-    </div>
+if (code) {
+    welcomeMessage.textContent = "Processing login…";
+    loginBtn.style.display = "none";
 
+    // After login, hide login button, show logout
+    logoutBtn.style.display = "inline-block";
 
-<script>
-    // ================================
-    //  COGNITO CONFIGURATION
-    // ================================
-    const clientId = "12lhjh1sc8pp2crquvgalf9bl2";  
-    const domain = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
-    const redirectUri = domain + "/oauth2/idpresponse"; 
-
-    // Build Login URL
-    const loginUrl =
-        `${domain}/login?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
-    // Build Logout URL
-    const logoutUrl =
-        `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(redirectUri)}`;
-
-
-    // ================================
-    //  LOGIN BUTTON
-    // ================================
-    document.getElementById("loginBtn").onclick = () => {
-        window.location.href = loginUrl;
-    };
-
-    // ================================
-    //  LOGOUT BUTTON
-    // ================================
-    document.getElementById("logoutBtn").onclick = () => {
-        // Clear local user data
-        localStorage.removeItem("cloudchef_user");
-
-        // Redirect to Cognito logout
-        window.location.href = logoutUrl;
-    };
-
-
-    // ================================
-    //  HANDLE COGNITO REDIRECT
-    // ================================
-    function getQueryParam(name) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
-    }
-
-    const authCode = getQueryParam("code");
-
-    if (authCode) {
-        // Save user as "logged in" – this is just display logic
-        localStorage.setItem("cloudchef_user", "CloudChef User");
-
-        // Remove ?code from URL cleanly
-        window.history.replaceState({}, document.title, "/");
-
-        updateUI();
-    }
-
-    // ================================
-    //  UPDATE UI BASED ON LOGIN STATUS
-    // ================================
-    function updateUI() {
-        const user = localStorage.getItem("cloudchef_user");
-
-        if (user) {
-            document.getElementById("welcomeMessage").style.display = "block";
-            document.getElementById("username").textContent = user;
-
-            document.getElementById("loginBtn").style.display = "none";
-            document.getElementById("logoutBtn").style.display = "inline-block";
-        } else {
-            document.getElementById("welcomeMessage").style.display = "none";
-            document.getElementById("loginBtn").style.display = "inline-block";
-            document.getElementById("logoutBtn").style.display = "none";
-        }
-    }
-
-    updateUI();
-</script>
-
-</body>
-</html>
+    // Fake “user retrieval” (Cognito requires token exchange backend),
+    // so we'll simply show a welcome message for now:
+    welcomeMessage.textContent = "Welcome! You are now logged in 🎉";
+} else {
+    // Not logged in
+    loginBtn.style.display = "inline-block";
+    logoutBtn.style.display = "none";
+}
 
