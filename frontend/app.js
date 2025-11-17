@@ -156,7 +156,7 @@ async function generateRecipe() {
 // ============================
 // DETECT INGREDIENTS (real API call)
 // ============================
-const API_ANALYZE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod";
+const API_ANALYZE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/analyze";
 
 async function analyzeImage() {
   const output = document.getElementById("output");
