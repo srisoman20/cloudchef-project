@@ -166,7 +166,7 @@ async function analyzeImage() {
     const response = await fetch(API_ANALYZE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({})
+      body: JSON.stringify({ test: "ping" })
     });
 
     // Add this: visually confirm that the API call reached AWS
