@@ -113,43 +113,69 @@ function renderIngredients() {
 // ============================
 const API_GENERATE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/generate";
 
+// async function generateRecipe() {
+//   const output = document.getElementById("output");
+//   output.innerHTML = "⏳ Generating recipe...";
+
+//   try {
+//     const response = await fetch(API_GENERATE, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         ingredients: ingredientArray.map(i => i.name),
+//         quantity: ingredientArray.map(i => i.qty)
+//       })
+//     });
+
+//     const apiResponse = await response.json();
+
+//     // apiResponse = { statusCode, headers, body: "string" }
+//     let data = apiResponse.body;
+
+//     if (typeof data === "string") {
+//       data = JSON.parse(data);
+//     }
+
+//     output.innerHTML = `
+//       <h3>${data.title}</h3>
+//       <p><strong>Ingredients:</strong> ${data.ingredients}</p>
+//       <p><strong>Steps:</strong> ${data.steps}</p>
+//       <p><strong>Nutrition:</strong> ${data.nutrition}</p>
+//       <p><strong>Message:</strong> ${data.message}</p>
+//     `;
+
+//   } catch (err) {
+//     console.error("ERROR:", err);
+//     output.innerHTML = `<p style="color:red;">❌ Error calling CloudChef API.</p>`;
+//   }
+// }
 async function generateRecipe() {
   const output = document.getElementById("output");
-  output.innerHTML = "⏳ Generating recipe...";
+  output.innerHTML = "👩‍🍳 Generating recipes with AI...";
 
   try {
+    const ingredients = ingredientArray.map(i => i.name);
+
     const response = await fetch(API_GENERATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ingredients: ingredientArray.map(i => i.name),
-        quantity: ingredientArray.map(i => i.qty)
-      })
+      body: JSON.stringify({ ingredients })
     });
 
-    const apiResponse = await response.json();
+    const data = await response.json();
+    console.log("AI RESPONSE:", data);
 
-    // apiResponse = { statusCode, headers, body: "string" }
-    let data = apiResponse.body;
-
-    if (typeof data === "string") {
-      data = JSON.parse(data);
+    if (data.recipes) {
+      output.innerHTML = `<div class="ai-response">${data.recipes.replace(/\n/g, "<br>")}</div>`;
+    } else {
+      output.innerHTML = "⚠️ No recipes returned from AI.";
     }
 
-    output.innerHTML = `
-      <h3>${data.title}</h3>
-      <p><strong>Ingredients:</strong> ${data.ingredients}</p>
-      <p><strong>Steps:</strong> ${data.steps}</p>
-      <p><strong>Nutrition:</strong> ${data.nutrition}</p>
-      <p><strong>Message:</strong> ${data.message}</p>
-    `;
-
-  } catch (err) {
-    console.error("ERROR:", err);
-    output.innerHTML = `<p style="color:red;">❌ Error calling CloudChef API.</p>`;
+  } catch (error) {
+    console.error("AI ERROR:", error);
+    output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
   }
 }
-
 
 
 
