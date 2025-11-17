@@ -189,4 +189,38 @@ async function analyzeImage() {
 }
 
 
+// ============================
+// SAVE RECIPE (real API call)
+// ============================
+const API_SAVE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
+
+async function saveRecipe() {
+  const output = document.getElementById("output");
+  output.innerHTML = "💾 Saving recipe...";
+
+  try {
+    const recipeData = {
+      title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
+      ingredients: ingredientArray.map(i => i.name),
+      quantities: ingredientArray.map(i => i.qty),
+      timestamp: new Date().toISOString()
+    };
+
+    const response = await fetch(API_SAVE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(recipeData)
+    });
+
+    const data = await response.json();
+    console.log("SAVE RESPONSE:", data);
+
+    output.innerHTML = `✅ ${data.message || "Recipe saved successfully!"}`;
+
+  } catch (error) {
+    console.error("SAVE ERROR:", error);
+    output.innerHTML = `<p style="color:red;">❌ Failed to save recipe.</p>`;
+  }
+}
+
 
