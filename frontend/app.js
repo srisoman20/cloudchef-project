@@ -169,21 +169,30 @@ async function analyzeImage() {
       body: JSON.stringify({})
     });
 
-    const apiResponse = await response.json();
+    // Add this: visually confirm that the API call reached AWS
+    if (response.ok) {
+      output.innerHTML = "✅ AWS Analyze API connected! Fetching results...";
+    } else {
+      output.innerHTML = "⚠️ API call reached server, but response not OK.";
+    }
 
+    const apiResponse = await response.json();
     let data = apiResponse.body;
     if (typeof data === "string") data = JSON.parse(data);
 
     const detected = data.ingredients || data.detectedIngredients || [];
 
     detected.forEach(item => {
-      ingredientArray.push({ name: item, qty: "1" });
+      if (!ingredientArray.some(i => i.name === item)) {
+        ingredientArray.push({ name: item, qty: "1" });
+      }
     });
 
     renderIngredients();
-    output.innerHTML = `✅ Detected: ${detected.join(", ")}`;
+    output.innerHTML = `✅ Detected (from AWS): ${detected.join(", ")}`;
   } catch (err) {
     console.error("ERROR:", err);
-    output.innerHTML = `<p style="color:red;">❌ Error calling Detect Ingredients API.</p>`;
+    output.innerHTML = `<p style="color:red;">❌ AWS Analyze API call failed.</p>`;
   }
 }
+
