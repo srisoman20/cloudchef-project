@@ -163,33 +163,27 @@ async function analyzeImage() {
   output.innerHTML = "🔍 Detecting ingredients...";
 
   try {
-    const response = await fetch(API_ANALYZE, {
+    const response = await fetch("https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ test: "ping" })
     });
 
-    // Add this: visually confirm that the API call reached AWS
-    if (response.ok) {
-      output.innerHTML = "✅ AWS Analyze API connected! Fetching results...";
+    const apiResponse = await response.json();
+    console.log("API RESPONSE:", apiResponse);
+
+    // If the Lambda returns ingredients, show them
+    if (apiResponse.body) {
+      const body = typeof apiResponse.body === "string"
+        ? JSON.parse(apiResponse.body)
+        : apiResponse.body;
+
+      const detected = body.ingredients || [];
+      output.innerHTML = `✅ Connected! Detected sample: ${detected.join(", ")}`;
     } else {
-      output.innerHTML = "⚠️ API call reached server, but response not OK.";
+      output.innerHTML = "⚠️ Connected but no data returned.";
     }
 
-    const apiResponse = await response.json();
-    let data = apiResponse.body;
-    if (typeof data === "string") data = JSON.parse(data);
-
-    const detected = data.ingredients || data.detectedIngredients || [];
-
-    detected.forEach(item => {
-      if (!ingredientArray.some(i => i.name === item)) {
-        ingredientArray.push({ name: item, qty: "1" });
-      }
-    });
-
-    renderIngredients();
-    output.innerHTML = `✅ Detected (from AWS): ${detected.join(", ")}`;
   } catch (err) {
     console.error("ERROR:", err);
     output.innerHTML = `<p style="color:red;">❌ AWS Analyze API call failed.</p>`;
