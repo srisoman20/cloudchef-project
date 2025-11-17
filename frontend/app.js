@@ -160,7 +160,7 @@ const API_ANALYZE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod
 
 async function analyzeImage() {
   const output = document.getElementById("output");
-  output.innerHTML = "🔍 Testing Analyze API...";
+  output.innerHTML = "🔍 Detecting ingredients...";
 
   try {
     const response = await fetch("https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/analyze", {
@@ -172,16 +172,21 @@ async function analyzeImage() {
     const data = await response.json();
     console.log("API RESPONSE:", data);
 
-    // Lambda proxy integration wraps your body in another JSON string
-    let body = data.body;
-    if (typeof body === "string") body = JSON.parse(body);
+    // ✅ This is the key change: your Lambda already returns { message, ingredients }
+    const detected = data.ingredients || [];
 
-    output.innerHTML = `✅ API working! Ingredients: ${body.ingredients.join(", ")}`;
+    // Display results in the UI
+    if (detected.length > 0) {
+      output.innerHTML = `✅ ${data.message} Detected: ${detected.join(", ")}`;
+    } else {
+      output.innerHTML = `⚠️ ${data.message || "Connected but no ingredients returned."}`;
+    }
 
   } catch (error) {
     console.error("ERROR:", error);
     output.innerHTML = `<p style="color:red;">❌ AWS Analyze API call failed.</p>`;
   }
 }
+
 
 
