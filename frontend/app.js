@@ -154,21 +154,36 @@ async function generateRecipe() {
 
 
 // ============================
-// MOCK DETECT INGREDIENTS
+// DETECT INGREDIENTS (real API call)
 // ============================
+const API_ANALYZE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod";
+
 async function analyzeImage() {
   const output = document.getElementById("output");
   output.innerHTML = "🔍 Detecting ingredients...";
 
-  setTimeout(() => {
-    const detected = ["tomato", "onion", "pasta"];
+  try {
+    const response = await fetch(API_ANALYZE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({})
+    });
+
+    const apiResponse = await response.json();
+
+    let data = apiResponse.body;
+    if (typeof data === "string") data = JSON.parse(data);
+
+    const detected = data.ingredients || data.detectedIngredients || [];
 
     detected.forEach(item => {
       ingredientArray.push({ name: item, qty: "1" });
     });
 
     renderIngredients();
-
-    output.innerHTML = `Detected: ${detected.join(", ")}`;
-  }, 1200);
+    output.innerHTML = `✅ Detected: ${detected.join(", ")}`;
+  } catch (err) {
+    console.error("ERROR:", err);
+    output.innerHTML = `<p style="color:red;">❌ Error calling Detect Ingredients API.</p>`;
+  }
 }
