@@ -160,7 +160,7 @@ const API_ANALYZE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod
 
 async function analyzeImage() {
   const output = document.getElementById("output");
-  output.innerHTML = "🔍 Detecting ingredients...";
+  output.innerHTML = "🔍 Testing Analyze API...";
 
   try {
     const response = await fetch("https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/analyze", {
@@ -169,24 +169,19 @@ async function analyzeImage() {
       body: JSON.stringify({ test: "ping" })
     });
 
-    const apiResponse = await response.json();
-    console.log("API RESPONSE:", apiResponse);
+    const data = await response.json();
+    console.log("API RESPONSE:", data);
 
-    // If the Lambda returns ingredients, show them
-    if (apiResponse.body) {
-      const body = typeof apiResponse.body === "string"
-        ? JSON.parse(apiResponse.body)
-        : apiResponse.body;
+    // Lambda proxy integration wraps your body in another JSON string
+    let body = data.body;
+    if (typeof body === "string") body = JSON.parse(body);
 
-      const detected = body.ingredients || [];
-      output.innerHTML = `✅ Connected! Detected sample: ${detected.join(", ")}`;
-    } else {
-      output.innerHTML = "⚠️ Connected but no data returned.";
-    }
+    output.innerHTML = `✅ API working! Ingredients: ${body.ingredients.join(", ")}`;
 
-  } catch (err) {
-    console.error("ERROR:", err);
+  } catch (error) {
+    console.error("ERROR:", error);
     output.innerHTML = `<p style="color:red;">❌ AWS Analyze API call failed.</p>`;
   }
 }
+
 
