@@ -118,7 +118,14 @@ async function generateRecipe() {
   output.innerHTML = "👩‍🍳 Generating recipes with AI...";
 
   try {
-    const ingredients = ingredientArray.map(i => i.name);
+    // Read ingredients directly from the text input
+    const ingredientInput = document.querySelector('input[placeholder="Ingredient (e.g., tomato)"]').value;
+    const ingredients = ingredientInput
+      .split(",")
+      .map(i => i.trim())
+      .filter(i => i.length > 0);
+
+    console.log("Ingredients sent to API:", ingredients);
 
     const response = await fetch(API_GENERATE, {
       method: "POST",
@@ -140,6 +147,7 @@ async function generateRecipe() {
     output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
   }
 }
+
 
 
 
