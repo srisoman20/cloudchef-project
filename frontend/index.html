@@ -19,7 +19,6 @@
       <button id="nav-grocery" class="nav-btn">Grocery List</button>
     </nav>
 
-    <!-- FIXED AUTH BUTTONS -->
     <div class="auth-buttons">
       <span id="welcomeMessage"></span>
       <button id="loginBtn" class="auth-btn">Sign In</button>
@@ -30,14 +29,15 @@
   <!-- PAGE WRAPPER -->
   <div class="page-container">
 
-    <!-- MAIN RECIPE GENERATOR PAGE -->
+    <!-- MAIN PAGE -->
     <div id="mainPage" class="content-card">
       <h2>What's in your fridge?</h2>
 
       <!-- FILE UPLOAD -->
-      <input id="imageUpload" type="file" />
+  <input type="file" id="imageUpload" accept="image/*" multiple />
+      
 
-      <!-- INGREDIENT + QUANTITY ROW -->
+      <!-- INGREDIENT + QUANTITY INPUT -->
       <div class="ingredient-row">
         <input id="ingredientName" type="text" placeholder="Ingredient (e.g., tomato)">
         <input id="ingredientQty" type="text" placeholder="Quantity">
@@ -47,14 +47,14 @@
       <!-- INGREDIENT LIST -->
       <ul id="ingredientList"></ul>
 
-      <!-- BUTTONS -->
+      <!-- ACTION BUTTONS -->
       <div class="button-row">
-        <button onclick="generateRecipe()" class="primary-btn">Generate Recipe</button>
-        <button onclick="analyzeImage()" class="outline-btn">Detect Ingredients</button>
-        <button onclick="saveRecipe()" class="outline-btn">Save Recipe</button>
+        <button id="generateBtn" class="primary-btn">Generate Recipe</button>
+        <button id="detectBtn" class="outline-btn">Detect Ingredients</button>
+        <button id="saveBtn" class="outline-btn">Save Recipe</button>
       </div>
 
-      <!-- OUTPUT -->
+      <!-- OUTPUT AREA -->
       <div id="output" class="output-box"></div>
     </div>
 
@@ -72,7 +72,11 @@
 
   </div>
 
-  <script src="app.js"></script>
+  <!-- IMPORTANT: FORCE-LOAD JS WITH VERSION -->
+  <script src="app.js?v=12345"></script>
+
+
+
 </body>
 </html>
 
