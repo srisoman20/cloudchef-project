@@ -119,23 +119,27 @@ async function generateRecipe() {
   output.innerHTML = "👩‍🍳 Generating recipes with AI...";
 
   try {
-    // Read ingredients directly from the text input
-    const ingredientInput = document.querySelector('input[placeholder="Ingredient (e.g., tomato)"]').value;
-    const ingredients = ingredientInput
-      .split(",")
-      .map(i => i.trim())
-      .filter(i => i.length > 0);
+    // ✅ Use the ingredientArray instead of the input box
+    if (!ingredientArray.length) {
+      output.innerHTML = "⚠️ Please add at least one ingredient first.";
+      return;
+    }
 
-    console.log("Ingredients sent to API:", ingredients);
+    // Combine name + quantity for clarity
+    const ingredients = ingredientArray.map(i => 
+      i.qty ? `${i.name} (${i.qty})` : i.name
+    );
+
+    console.log("✅ Ingredients sent to API:", ingredients);
 
     const response = await fetch(API_GENERATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ingredients })
+      body: JSON.stringify({ ingredients }),
     });
 
     const data = await response.json();
-    console.log("AI RESPONSE:", data);
+    console.log("🤖 AI RESPONSE:", data);
 
     if (data.recipes) {
       output.innerHTML = `<div class="ai-response">${data.recipes.replace(/\n/g, "<br>")}</div>`;
@@ -155,62 +159,68 @@ async function generateRecipe() {
 const API_ANALYZE =
   "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/analyze";
 
-async function analyzeImage() {
-  console.log("📸 analyzeImage() called");
-
-  const fileInput = document.getElementById("imageUpload");
-  const output = document.getElementById("output");
-
-  if (!fileInput.files.length) {
-    output.innerHTML = "⚠️ No images selected.";
-    return;
-  }
-
-  output.textContent = "🔍 Detecting ingredients from all images...";
-
-  // Convert selected images → Base64 array
-  const base64Images = await Promise.all(
-    Array.from(fileInput.files).map(
-      (file) =>
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64 = reader.result.split(",")[1];
-            console.log("📸 Loaded:", file.name, "len:", base64.length);
-            resolve(base64);
-          };
-          reader.readAsDataURL(file);
-        })
-    )
-  );
-
-  console.log("📤 Sending", base64Images.length, "images");
-
-  try {
-    const response = await fetch(API_ANALYZE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ images: base64Images }),
-    });
-
-    const data = await response.json();
-    console.log("Analyze Response:", data);
-
-    if (data.ingredients?.length > 0) {
-      output.innerHTML =
-  "🍅 Detected: " +
-  data.ingredients
-    .map((i) => `${i.name} (${i.count})`)
-    .join(", ");
-
-    } else {
-      output.innerHTML = `⚠️ No ingredients detected.`;
+  async function analyzeImage() {
+    console.log("📸 analyzeImage() called");
+  
+    const fileInput = document.getElementById("imageUpload");
+    const output = document.getElementById("output");
+  
+    if (!fileInput.files.length) {
+      output.innerHTML = "⚠️ No images selected.";
+      return;
     }
-  } catch (err) {
-    console.error("Analyze Error:", err);
-    output.innerHTML = "❌ Error analyzing images.";
+  
+    output.textContent = "🔍 Detecting ingredients...";
+  
+    // Read single file only
+    const file = fileInput.files[0];
+  
+    const base64 = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(",")[1]);
+      reader.readAsDataURL(file);
+    });
+  
+    console.log("📸 Loaded:", file.name, "len:", base64.length);
+  
+    try {
+      const response = await fetch(API_ANALYZE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images: [base64] })
+      });
+  
+      const data = await response.json();
+      console.log("Analyze Response:", data);
+  
+      if (data.ingredients?.length > 0) {
+  
+        // Add detected items to ingredient list
+        data.ingredients.forEach(item => {
+          ingredientArray.push({
+            name: item.name,
+            qty: item.count
+          });
+        });
+  
+        renderIngredients();
+  
+        // Reset the file input
+        fileInput.value = "";
+  
+        // Clear output message
+        output.innerHTML = "";
+  
+      } else {
+        output.innerHTML = `⚠️ No ingredients detected.`;
+      }
+  
+    } catch (err) {
+      console.error("Analyze Error:", err);
+      output.innerHTML = "❌ Error analyzing image.";
+    }
   }
-}
+  
 
 // ============================
 // SAVE RECIPE
