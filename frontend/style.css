@@ -1,3 +1,66 @@
+/* ===========================
+   RESET + NAVBAR FIX
+   =========================== */
+body {
+  margin: 0;
+  background: #fff7f0;
+  font-family: "Inter", sans-serif;
+  color: #333;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  color: #ff7a42;
+  font-weight: 700;
+  font-size: 1.5rem;
+}
+
+nav button.nav-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  color: #333;
+  margin: 0 0.75rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* FIX: Nav button active color */
+.nav-btn.active {
+  background: #ff7a42;
+  color: white !important;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+}
+
+.nav-btn:not(.active):hover {
+  color: #ff7a42;
+}
+
+
+
+.auth-buttons button {
+  background: #ff7a42;
+  color: white;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+
 /* GENERAL PAGE */
 body {
   font-family: "Segoe UI", Arial, sans-serif;
@@ -175,5 +238,169 @@ nav {
   color: #999;
   font-size: 17px;
   padding: 40px;
+}
+
+.recipe-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  margin-top: 1.5rem;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+}
+
+.recipe-card h2 {
+  margin-bottom: 1rem;
+  color: #222;
+}
+
+.recipe-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.recipe-ingredients ul, .recipe-instructions ol {
+  padding-left: 1.5rem;
+}
+
+.recipe-instructions ol li::marker {
+  color: #ff7a42;
+  font-weight: bold;
+}
+
+.recipe-ingredients h3,
+.recipe-instructions h3 {
+  margin-bottom: 0.75rem;
+  color: #444;
+}
+
+/* ===========================
+   CLEAN GRID RECIPE LAYOUT
+   =========================== */
+.recipe-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  margin: 2rem auto;
+  width: 90%;
+  max-width: 900px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.recipe-header h2 {
+  color: #ff7a42;
+  margin-bottom: 0.4rem;
+}
+
+.recipe-header .subtext {
+  color: #777;
+  margin-bottom: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.recipe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.recipe-col h3 {
+  margin-bottom: 0.6rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.ingredients ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.ingredients li {
+  background: #fff7f0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+
+.instructions ol {
+  padding-left: 1.2rem;
+}
+
+.instructions li {
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+.instructions ol li::marker {
+  color: #ff7a42;
+  font-weight: bold;
+}
+
+.suggestion-box {
+  background: #fffaf4;
+  border-left: 4px solid #ff7a42;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-top: 1.5rem;
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.suggestion-box strong {
+  color: #ff7a42;
+}
+
+/* Nutrition Facts Grid */
+.nutrition-section {
+  margin-top: 24px;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.nutrition-section h4 {
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+
+.nutrition-item {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 16px 24px;
+  min-width: 120px;
+  text-align: center;
+  flex: 1 1 120px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.nutrition-label {
+  display: block;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.nutrition-value {
+  display: block;
+  font-weight: 700;
+  font-size: 18px;
+  color: #000;
 }
 

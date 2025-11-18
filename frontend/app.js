@@ -110,48 +110,208 @@ function renderIngredients() {
 }
 
 // ============================
-// GENERATE RECIPE (real API call)
+// GENERATE RECIPE (Bedrock AI)
 // ============================
 const API_GENERATE = "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/generate";
 
 async function generateRecipe() {
-  const output = document.getElementById("output");
-  output.innerHTML = "👩‍🍳 Generating recipes with AI...";
+  const output = document.getElementById("output");
+  output.innerHTML = "👩‍🍳 Generating recipes with AI...";
 
-  try {
-    // ✅ Use the ingredientArray instead of the input box
-    if (!ingredientArray.length) {
-      output.innerHTML = "⚠️ Please add at least one ingredient first.";
-      return;
-    }
+  try {
+    // ✅ Ensure ingredients exist
+    if (!ingredientArray.length) {
+      output.innerHTML = "⚠️ Please add at least one ingredient first.";
+      return;
+    }
 
-    // Combine name + quantity for clarity
-    const ingredients = ingredientArray.map(i => 
-      i.qty ? `${i.name} (${i.qty})` : i.name
-    );
+    // Combine ingredient name + quantity
+    const ingredients = ingredientArray.map(i =>
+      i.qty ? `${i.qty} ${i.name}` : i.name
+    );
 
-    console.log("✅ Ingredients sent to API:", ingredients);
+    console.log("✅ Ingredients sent to API:", ingredients);
 
-    const response = await fetch(API_GENERATE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ingredients }),
-    });
+    // ✅ Call your Lambda API
+    const response = await fetch(API_GENERATE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ingredients }),
+    });
 
-    const data = await response.json();
-    console.log("🤖 AI RESPONSE:", data);
+    const data = await response.json();
+    console.log("🤖 AI RESPONSE:", data);
 
-    if (data.recipes) {
-      output.innerHTML = `<div class="ai-response">${data.recipes.replace(/\n/g, "<br>")}</div>`;
-    } else {
-      output.innerHTML = "⚠️ No recipes returned from AI.";
-    }
+    if (!data.recipes) {
+      output.innerHTML = "⚠️ No recipes returned from AI.";
+      return;
+    }
 
-  } catch (error) {
-    console.error("AI ERROR:", error);
-    output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
-  }
+    // ============================
+    // PARSE THE AI TEXT OUTPUT
+    // ============================
+    const recipeText = data.recipes.trim();
+    console.log("🧾 Raw AI Recipe:", recipeText);
+
+    // Split by “Recipe 1:”, “Recipe 2:”, etc.
+    const recipeBlocks = recipeText
+      .split(/(?:^|\n)Recipe\s*\d*[:.-]?\s*/i)
+      .map(r => r.trim())
+      .filter(r => r.length > 0);
+
+    let fullHTML = "";
+
+    recipeBlocks.forEach((block, idx) => {
+      const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+
+      // Extract title
+      const titleLine = lines.find(
+        l =>
+          !/^description|^time|^prep|^ingredients|^instructions|^nutrition/i.test(
+            l.toLowerCase()
+          )
+      );
+      const title = titleLine || `Recipe ${idx + 1}`;
+
+      // Description
+      const description = (
+        lines.find(l => l.toLowerCase().startsWith("description")) || ""
+      )
+        .replace(/^description[:\-]?\s*/i, "")
+        .trim();
+
+      // Time + servings (prevent duplicates)
+      const timeMatch = lines.find(l =>
+        l.toLowerCase().startsWith("time:")
+      );
+      const servingsMatch = lines.find(l =>
+        l.toLowerCase().startsWith("servings:")
+      );
+
+      let prepInfo = "";
+      if (timeMatch && servingsMatch) {
+        const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
+        const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
+        prepInfo = `⏱ Time: ${time} | 🍽 Servings: ${servings}`;
+      } else if (timeMatch) {
+        const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
+        prepInfo = `⏱ Time: ${time}`;
+      } else if (servingsMatch) {
+        const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
+        prepInfo = `🍽 Servings: ${servings}`;
+      }
+
+      // Section arrays
+      let ingredientsArr = [];
+      let instructionsArr = [];
+      let nutritionArr = [];
+      let suggestionsArr = [];
+      let currentSection = null;
+
+      // Parse sections line-by-line
+      for (const line of lines) {
+        const lower = line.toLowerCase();
+
+        if (lower.startsWith("ingredients")) {
+          currentSection = "ingredients";
+          continue;
+        }
+        if (lower.startsWith("instructions")) {
+          currentSection = "instructions";
+          continue;
+        }
+        if (lower.startsWith("nutrition facts")) {
+          currentSection = "nutrition";
+          continue;
+        }
+        if (lower.startsWith("suggestion")) {
+          suggestionsArr.push(line.replace(/^suggestion[:\-]?\s*/i, "").trim());
+          continue;
+        }
+
+        if (currentSection === "ingredients" && line) {
+          const clean = line.replace(/^[-•\s]+/, "").trim();
+          if (clean) ingredientsArr.push(clean);
+        } else if (currentSection === "instructions" && line) {
+          const clean = line.replace(/^(\d+[\.\)]\s*)/, "").trim();
+          if (clean && !/^suggestion/i.test(clean)) instructionsArr.push(clean);
+        } else if (currentSection === "nutrition" && line) {
+          const clean = line.replace(/^[-•\s]+/, "").trim();
+          if (clean) nutritionArr.push(clean);
+        }
+      }
+
+      // ============================
+      // BUILD RECIPE CARD HTML
+      // ============================
+      fullHTML += `
+        <div class="recipe-card">
+          <div class="recipe-header">
+            <h2>${title}</h2>
+            ${description ? `<p class="recipe-desc">${description}</p>` : ""}
+            ${prepInfo ? `<div class="prep-info"><span>${prepInfo}</span></div>` : ""}
+          </div>
+
+          <div class="recipe-grid">
+            <div class="recipe-col ingredients">
+              <h3>🧂 Ingredients</h3>
+              <ul>${ingredientsArr.map(i => `<li>${i}</li>`).join("")}</ul>
+            </div>
+            <div class="recipe-col instructions">
+              <h3>👩‍🍳 Instructions</h3>
+              <ol>${instructionsArr.map(s => `<li>${s}</li>`).join("")}</ol>
+            </div>
+          </div>
+
+          ${
+            nutritionArr.length
+              ? (() => {
+                  const nutritionHTML = nutritionArr
+                    .map(n => {
+                      const [label, value] = n.split(":").map(s => s.trim());
+                      return `
+                        <div class="nutrition-item">
+                          <span class="nutrition-label">${label || ""}</span>
+                          <span class="nutrition-value">${value || ""}</span>
+                        </div>
+                      `;
+                    })
+                    .join("");
+                  return `
+                    <div class="nutrition-section">
+                      <h4>Nutrition Facts (per serving)</h4>
+                      <div class="nutrition-grid">
+                        ${nutritionHTML}
+                      </div>
+                    </div>
+                  `;
+          })()
+        : ""
+    }
+
+    ${
+      suggestionsArr.length
+        ? `<div class="suggestion-box">
+            <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
+          </div>`
+        : ""
+    }
+  </div>
+`;
+
+    });
+
+    // Render recipes
+    output.innerHTML = fullHTML;
+
+  } catch (error) {
+    console.error("AI ERROR:", error);
+    output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
+  }
 }
+
+
+
 
 // ============================
 // MULTI-IMAGE INGREDIENT DETECTION (BEDROCK VERSION)
