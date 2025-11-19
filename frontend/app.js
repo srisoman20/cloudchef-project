@@ -214,6 +214,7 @@ function renderIngredients() {
 // ============================
 // GENERATE RECIPE (Bedrock AI)
 // ============================
+const API_SAVE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe"
 const API_GENERATE = "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/generate";
 
 async function generateRecipe() {
