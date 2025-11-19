@@ -14,6 +14,8 @@ const welcomeMessage = document.getElementById("welcomeMessage");
 
 let user = null;
 let currentUsername = null;
+let accessToken = null;
+
 
 // LOGIN BUTTON
 loginBtn.onclick = () => {
@@ -69,6 +71,18 @@ async function exchangeCodeForTokens(code) {
 
   return res.json();
 }
+
+// After exchanging code → store tokens
+accessToken = tokenJson.access_token;
+
+const idToken = tokenJson.id_token;
+const idPayload = JSON.parse(atob(idToken.split(".")[1]));
+
+currentUsername = idPayload["cognito:username"];
+welcomeMessage.textContent = `Hello, ${currentUsername}!`;
+
+loginBtn.style.display = "none";
+logoutBtn.style.display = "inline-block";
 
 
 // Parse JWT safely
@@ -167,8 +181,14 @@ function showPage(page) {
     document.getElementById("nav-generate").classList.add("active");
   } else if (page === "saved") {
     savedPage.classList.remove("hidden");
-    document.getElementById("nav-saved").classList.add("active");
-    loadSavedRecipes();
+    document.getElementById("nav-saved").onclick = () => {
+      if (!accessToken) {
+        alert("Please sign in to view your saved recipes.");
+        return;
+      }
+      showPage("savedPage");
+      loadSavedRecipes();
+    };
   } else if (page === "grocery") {
     groceryPage.classList.remove("hidden");
     document.getElementById("nav-grocery").classList.add("active");
@@ -436,8 +456,8 @@ async function saveGeneratedRecipe(index) {
 
   const recipe = generatedRecipes[index];
 
+  // Create payload WITHOUT username — Lambda gets it from JWT
   const payload = {
-    username: currentUsername,
     recipeId: Date.now().toString(),
     ...recipe
   };
@@ -445,7 +465,10 @@ async function saveGeneratedRecipe(index) {
   try {
     const res = await fetch(API_SAVE_RECIPE, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": idToken   // ⭐ SEND TOKEN HERE
+      },
       body: JSON.stringify(payload)
     });
 
@@ -462,6 +485,7 @@ async function saveGeneratedRecipe(index) {
   }
 }
 
+
 // ==================================
 // SAVED RECIPES API ENDPOINTS + CODE
 // ==================================
@@ -472,108 +496,70 @@ const API_DELETE_SAVED =
   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/deleteRecipe";
 
 async function loadSavedRecipes() {
-  if (!currentUsername) {
-    console.warn("User not logged in");
+  if (!accessToken) {
+    console.log("Blocked: no token");
     return;
   }
 
-  const container = document.getElementById("savedPage");
-  const emptyMsg = container.querySelector(".empty-msg");
+  const url = `${apiBase}/getRecipes`;
 
-  // Clear old recipes
-  container.querySelectorAll(".saved-recipe-card").forEach(e => e.remove());
-
-  try {
-    const res = await fetch(`${API_GET_SAVED}?username=${currentUsername}`);
-    const data = await res.json();
-
-    if (!data.items || data.items.length === 0) {
-      emptyMsg.style.display = "block";
-      return;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: {
+      "Authorization": `Bearer ${accessToken}`
     }
+  });
 
-    emptyMsg.style.display = "none";
+  const data = await res.json();
 
-    data.items.forEach(item => {
-      const card = document.createElement("div");
-      card.className = "saved-recipe-card";
-      card.innerHTML = `
-        <div class="recipe-card">
-          <div class="recipe-header">
-            <h2>${item.title}</h2>
-            ${item.description ? `<p>${item.description}</p>` : ""}
-            ${item.prepInfo ? `<p><strong>${item.prepInfo}</strong></p>` : ""}
-          </div>
+  const savedPage = document.getElementById("savedPage");
+  savedPage.innerHTML = `<h2>Saved Recipes</h2>`;
 
-          <div class="recipe-grid">
-            <div class="recipe-col ingredients">
-              <h3>🧂 Ingredients</h3>
-              <ul>${item.ingredients.map(i => `<li>${i}</li>`).join("")}</ul>
-            </div>
-
-            <div class="recipe-col instructions">
-              <h3>👩‍🍳 Instructions</h3>
-              <ol>${item.instructions.map(s => `<li>${s}</li>`).join("")}</ol>
-            </div>
-          </div>
-
-          ${
-            item.nutrition?.length
-              ? `
-                <div class="nutrition-section">
-                  <h4>Nutrition</h4>
-                  <div class="nutrition-grid">
-                    ${item.nutrition
-                      .map(n => `<div class="nutrition-item">${n}</div>`)
-                      .join("")}
-                  </div>
-                </div>`
-              : ""
-          }
-
-          ${
-            item.suggestions?.length
-              ? `<div class="suggestion-box"><strong>Suggestion:</strong> ${item.suggestions.join(
-                  " "
-                )}</div>`
-              : ""
-          }
-
-          <button class="save-recipe-btn delete-btn"
-            onclick="deleteSavedRecipe('${item.userId}', '${item.recipeID}')">
-            ❌ Delete Recipe
-          </button>
-        </div>
-      `;
-
-      container.appendChild(card);
-    });
-  } catch (err) {
-    console.error("LOAD ERROR", err);
+  if (!data.items || data.items.length === 0) {
+    savedPage.innerHTML += `<p class="empty-msg">No saved recipes yet</p>`;
+    return;
   }
+
+  data.items.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "recipe-card saved-recipe-card";
+
+    card.innerHTML = `
+      <h2>${item.title}</h2>
+      <p>${item.description}</p>
+      <button class="save-recipe-btn delete-btn" onclick="deleteRecipe('${item.recipeID}')">Delete</button>
+    `;
+
+    savedPage.appendChild(card);
+  });
 }
+
 
 async function deleteSavedRecipe(userId, recipeID) {
   try {
     const res = await fetch(API_DELETE_SAVED, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, recipeID })
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": idToken   // ⭐ Required for Cognito Authorizer
+      },
+      body: JSON.stringify({
+        recipeID: recipeID   // Only send recipeID now
+      })
     });
 
     if (!res.ok) {
+      console.error(await res.text());
       alert("❌ Failed to delete recipe");
       return;
     }
 
     alert("🗑️ Recipe deleted");
-    loadSavedRecipes();
+    loadSavedRecipes(); // Refresh UI
   } catch (err) {
     console.error("DELETE ERROR:", err);
   }
 }
-
-
 
 
 // ============================
