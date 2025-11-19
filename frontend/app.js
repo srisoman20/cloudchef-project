@@ -1,7 +1,7 @@
 console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
 
 // ============================
-// COGNITO CONFIG
+// COGNITO CONFIG (FIXED VERSION)
 // ============================
 const CLIENT_ID = "12lhjh1sc8pp2crquvgalf9bl2";
 const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
@@ -11,36 +11,100 @@ const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
-// LOGIN
+let user = null;
+
+// LOGIN BUTTON
 loginBtn.onclick = () => {
   const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI
-  )}`;
+  )}&scope=openid+email`;
   window.location.href = url;
 };
 
-// LOGOUT
+// LOGOUT BUTTON
 logoutBtn.onclick = () => {
+  localStorage.removeItem("username");
+  localStorage.removeItem("idToken");
+
   const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
     REDIRECT_URI
   )}`;
   window.location.href = url;
 };
 
+// Get auth code
 function getQueryParam(n) {
   return new URL(window.location.href).searchParams.get(n);
 }
 
 const code = getQueryParam("code");
 
-if (code) {
-  welcomeMessage.textContent = "Welcome! You are logged in 🎉";
-  loginBtn.style.display = "none";
-  logoutBtn.style.display = "inline-block";
-} else {
-  loginBtn.style.display = "inline-block";
-  logoutBtn.style.display = "none";
+// Exchange auth code for tokens
+async function exchangeCodeForTokens(code) {
+  const url = `${COGNITO_DOMAIN}/oauth2/token`;
+
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: CLIENT_ID,
+    code,
+    redirect_uri: REDIRECT_URI,
+  });
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+
+  return res.json();
 }
+
+// Parse JWT
+function parseJwt(token) {
+  return JSON.parse(atob(token.split(".")[1]));
+}
+
+// INIT AUTH
+async function initAuth() {
+  if (code) {
+    const tokenData = await exchangeCodeForTokens(code);
+    const idToken = tokenData.id_token;
+
+    const payload = parseJwt(idToken);
+
+    const username =
+      payload["cognito:username"] ||
+      payload.username ||
+      payload.email ||
+      payload.sub;
+
+    localStorage.setItem("username", username);
+    localStorage.setItem("idToken", idToken);
+
+    user = { username };
+
+    welcomeMessage.textContent = `Welcome, ${username}!`;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+
+    // Clean URL (remove ?code=)
+    const cleanURL = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, "", cleanURL);
+
+  } else {
+    const stored = localStorage.getItem("username");
+    if (stored) {
+      user = { username: stored };
+      welcomeMessage.textContent = `Welcome, ${stored}!`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+    }
+  }
+}
+
+initAuth();
+
+
 
 // ============================
 // PAGE NAVIGATION
