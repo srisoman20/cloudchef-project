@@ -43,10 +43,11 @@ function getQueryParam(n) {
 
 const code = getQueryParam("code");
 
-// Exchange auth code for tokens
+// -------------------------------
+// EXCHANGE AUTH CODE FOR TOKENS
+// -------------------------------
 async function exchangeCodeForTokens(code) {
   const url = `${COGNITO_DOMAIN}/oauth2/token`;
-
   const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
 
   const body = new URLSearchParams({
@@ -72,89 +73,77 @@ async function exchangeCodeForTokens(code) {
   return res.json();
 }
 
-// After exchanging code → store tokens
-accessToken = tokenJson.access_token;
-
-const idToken = tokenJson.id_token;
-const idPayload = JSON.parse(atob(idToken.split(".")[1]));
-
-currentUsername = idPayload["cognito:username"];
-welcomeMessage.textContent = `Hello, ${currentUsername}!`;
-
-loginBtn.style.display = "none";
-logoutBtn.style.display = "inline-block";
-
-
-// Parse JWT safely
+// -------------------------------
+// PARSE JWT SAFELY
+// -------------------------------
 function parseJwt(token) {
-  if (!token) return null; // 🔥 FIXED
+  if (!token) return null;
   try {
     return JSON.parse(atob(token.split(".")[1]));
   } catch (e) {
-    console.error("JWT parse error:", e, token);
+    console.error("JWT parse error:", e);
     return null;
   }
 }
 
-// INIT AUTH
+// -------------------------------
+// HANDLE TOKEN EXCHANGE (FIRST LOGIN)
+// -------------------------------
+async function handleTokenExchange() {
+  if (!code) return;
+
+  const tokenJson = await exchangeCodeForTokens(code);
+  if (!tokenJson) return;
+
+  const idToken = tokenJson.id_token;
+  localStorage.setItem("idToken", idToken);
+
+  const payload = parseJwt(idToken);
+  currentUsername =
+    payload["cognito:username"] ||
+    payload.email ||
+    payload.sub;
+
+  localStorage.setItem("username", currentUsername);
+
+  user = { username: currentUsername };
+
+  welcomeMessage.textContent = `Hello, ${currentUsername}!`;
+  loginBtn.style.display = "none";
+  logoutBtn.style.display = "inline-block";
+
+  // Clean URL
+  const cleanURL = window.location.origin + window.location.pathname;
+  window.history.replaceState({}, "", cleanURL);
+}
+
+// -------------------------------
+// INIT AUTH ON PAGE LOAD
+// -------------------------------
 async function initAuth() {
+  // Case 1: URL contains ?code=XXXX (fresh login)
   if (code) {
-    const tokenData = await exchangeCodeForTokens(code);
-  
-    if (!tokenData || !tokenData.id_token) {
-      console.error("❌ No id_token returned.");
-      return;
-    }
-  
-    const idToken = tokenData.id_token;
-    const payload = parseJwt(idToken);
-  
-    if (!payload) {
-      console.error("❌ JWT payload empty.");
-      return;
-    }
+    await handleTokenExchange();
+    loadGroceryList();
+    return;
+  }
 
-    const username =
-      payload["cognito:username"] ||
-      payload.username ||
-      payload.email ||
-      payload.sub;
-      
-      console.log("USERNAME FROM COGNITO:", username);
+  // Case 2: Returning user (load from localStorage)
+  const stored = localStorage.getItem("username");
+  const storedToken = localStorage.getItem("idToken");
 
-      currentUsername = username;   // ⭐ FIX: now available everywhere
-      localStorage.setItem("username", username);
-      localStorage.setItem("idToken", idToken);
-      
-      user = { username };
-      
+  if (stored && storedToken) {
+    currentUsername = stored;
+    user = { username: stored };
 
-    welcomeMessage.textContent = `Welcome!`;
+    welcomeMessage.textContent = `Hello, ${stored}!`;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
 
-    // load groceries immediately
     loadGroceryList();
-
-    // Clean URL
-    const cleanURL = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, "", cleanURL);
-
-  } else {
-    const stored = localStorage.getItem("username");
-    if (stored) {
-      user = { username: stored };
-      currentUsername = stored;   // ⭐⭐ Fixes the entire problem!
-      
-      welcomeMessage.textContent = `Welcome!`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-
-      loadGroceryList();
-    }
+  }
 }
 
-}
 
 
 
