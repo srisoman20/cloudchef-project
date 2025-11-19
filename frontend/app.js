@@ -503,31 +503,31 @@ async function analyzeImage() {
 const API_SAVE =
   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
 
-async function saveRecipe() {
-  const output = document.getElementById("output");
-  output.innerHTML = "💾 Saving recipe...";
+// async function saveRecipe() {
+//   const output = document.getElementById("output");
+//   output.innerHTML = "💾 Saving recipe...";
 
-  try {
-    const recipeData = {
-      title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
-      ingredients: ingredientArray.map((i) => i.name),
-      quantities: ingredientArray.map((i) => i.qty),
-      timestamp: new Date().toISOString(),
-    };
+//   try {
+//     const recipeData = {
+//       title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
+//       ingredients: ingredientArray.map((i) => i.name),
+//       quantities: ingredientArray.map((i) => i.qty),
+//       timestamp: new Date().toISOString(),
+//     };
 
-    const response = await fetch(API_SAVE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(recipeData),
-    });
+//     const response = await fetch(API_SAVE, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(recipeData),
+//     });
 
-    const data = await response.json();
-    output.innerHTML = `✅ ${data.message}`;
-  } catch (e) {
-    console.error(e);
-    output.innerHTML = "❌ Failed to save recipe.";
-  }
-}
+//     const data = await response.json();
+//     output.innerHTML = `✅ ${data.message}`;
+//   } catch (e) {
+//     console.error(e);
+//     output.innerHTML = "❌ Failed to save recipe.";
+//   }
+// }
 
 // ============================
 // GROCERY SYSTEM (FIXES ADDED)
@@ -641,6 +641,6 @@ async function removeGroceryItem(itemName) {
 // ============================
 document.getElementById("detectBtn").addEventListener("click", analyzeImage);
 document.getElementById("generateBtn").addEventListener("click", generateRecipe);
-document.getElementById("saveBtn").addEventListener("click", saveRecipe);
+// document.getElementById("saveBtn").addEventListener("click", saveRecipe);
 
 initAuth();
