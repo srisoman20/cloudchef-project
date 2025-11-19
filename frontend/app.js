@@ -275,14 +275,28 @@ async function generateRecipe() {
         .trim();
 
       // --- Prep Info ---
+      let prepInfo = "";
+
       const timeMatch = lines.find(l => l.toLowerCase().startsWith("time:"));
       const servingsMatch = lines.find(l => l.toLowerCase().startsWith("servings:"));
 
-      let prepInfo = "";
-      if (timeMatch && servingsMatch) {
-        const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
-        const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
+      let time = "";
+      let servings = "";
+
+      if (timeMatch) {
+        time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
+      }
+
+      if (servingsMatch) {
+        servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
+      }
+
+      if (time && servings) {
         prepInfo = `⏱ Time: ${time} | 🍽 Servings: ${servings}`;
+      } else if (time) {
+        prepInfo = `⏱ Time: ${time}`;
+      } else if (servings) {
+        prepInfo = `🍽 Servings: ${servings}`;
       }
 
       // --- Sections ---
@@ -496,38 +510,6 @@ async function analyzeImage() {
     console.error(err);
   }
 }
-
-// ============================
-// SAVE RECIPE
-// ============================
-const API_SAVE =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
-
-// async function saveRecipe() {
-//   const output = document.getElementById("output");
-//   output.innerHTML = "💾 Saving recipe...";
-
-//   try {
-//     const recipeData = {
-//       title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
-//       ingredients: ingredientArray.map((i) => i.name),
-//       quantities: ingredientArray.map((i) => i.qty),
-//       timestamp: new Date().toISOString(),
-//     };
-
-//     const response = await fetch(API_SAVE, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(recipeData),
-//     });
-
-//     const data = await response.json();
-//     output.innerHTML = `✅ ${data.message}`;
-//   } catch (e) {
-//     console.error(e);
-//     output.innerHTML = "❌ Failed to save recipe.";
-//   }
-// }
 
 // ============================
 // GROCERY SYSTEM (FIXES ADDED)
