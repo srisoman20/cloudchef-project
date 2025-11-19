@@ -502,8 +502,10 @@ async function loadGroceryList() {
   const res = await fetch(`${API_GROCERY_GET}?username=${user.username}`);
   const data = await res.json();
 
+  const items = data.items || [];   // ← FIX
+
   const list = document.getElementById("groceryList");
-  list.innerHTML = data.items
+  list.innerHTML = items
     .map(
       (item) => `
       <li>
@@ -514,6 +516,7 @@ async function loadGroceryList() {
     )
     .join("");
 }
+
 
 // Remove grocery item
 async function removeGroceryItem(itemName) {
