@@ -3,7 +3,7 @@ console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VE
 // COGNITO CONFIG (FIXED VERSION)
 // ============================
 const CLIENT_ID = "4c9mk38r0drvestg77l0no5th6";
-const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
+const COGNITO_DOMAIN = "https://us-west-1xj65bt4pz.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
 
