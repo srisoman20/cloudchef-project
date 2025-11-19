@@ -445,8 +445,8 @@ async function saveGeneratedRecipe(index) {
 
   const recipe = generatedRecipes[index];
 
-  // Create payload WITHOUT username — Lambda gets it from JWT
   const payload = {
+    username: currentUsername,
     recipeId: Date.now().toString(),
     ...recipe
   };
@@ -456,7 +456,7 @@ async function saveGeneratedRecipe(index) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": idToken   // ⭐ SEND TOKEN HERE
+        "Authorization": localStorage.getItem("idToken")
       },
       body: JSON.stringify(payload)
     });
@@ -473,6 +473,7 @@ async function saveGeneratedRecipe(index) {
     alert("❌ Error saving recipe.");
   }
 }
+
 
 
 // ==================================
