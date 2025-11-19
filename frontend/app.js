@@ -474,12 +474,15 @@ async function addIngredientsToGrocery(items) {
 
   await fetch(API_GROCERY_ADD, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+        "Content-Type": "application/json"
+    },
     body: JSON.stringify({
-      username: user.username,
-      items,
-    }),
-  });
+        username,
+        items: [itemName]
+    })
+});
+
 
   alert("Added to grocery list!");
   loadGroceryList();
