@@ -3,6 +3,7 @@ console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VE
 // COGNITO CONFIG (FIXED VERSION)
 // ============================
 const CLIENT_ID = "4c9mk38r0drvestg77l0no5th6";
+const CLIENT_SECRET = "3cve697td0ldnkjao0tim7mttlbignm4fu3i371mp47qsnlvh8k";
 const COGNITO_DOMAIN = "https://us-west-1xj65bt4pz.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
@@ -43,17 +44,21 @@ const code = getQueryParam("code");
 async function exchangeCodeForTokens(code) {
   const url = `${COGNITO_DOMAIN}/oauth2/token`;
 
+  const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+
   const body = new URLSearchParams({
     grant_type: "authorization_code",
-    client_id: CLIENT_ID,
-    code: code,
-    redirect_uri: REDIRECT_URI,
+    code,
+    redirect_uri: REDIRECT_URI
   });
 
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: body.toString(), // 🔥 FIXED — MUST BE STRING
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Authorization": `Basic ${creds}`
+    },
+    body: body.toString(),
   });
 
   if (!res.ok) {
@@ -61,8 +66,9 @@ async function exchangeCodeForTokens(code) {
     return null;
   }
 
-  return await res.json();
+  return res.json();
 }
+
 
 // Parse JWT safely
 function parseJwt(token) {
