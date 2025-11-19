@@ -3,7 +3,6 @@ console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VE
 // COGNITO CONFIG (FIXED VERSION)
 // ============================
 const CLIENT_ID = "4c9mk38r0drvestg77l0no5th6";
-const CLIENT_SECRET = "3cve697td0ldnkjao0tim7mttlbignm4fu3i371mp47qsnlvh8k";
 const COGNITO_DOMAIN = "https://us-west-1xj65bt4pz.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
@@ -43,31 +42,18 @@ const code = getQueryParam("code");
 
 // Exchange auth code for tokens
 async function exchangeCodeForTokens(code) {
-  const url = `${COGNITO_DOMAIN}/oauth2/token`;
-
-  const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
-
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    code,
-    redirect_uri: REDIRECT_URI
-  });
-
-  const res = await fetch(url, {
+  const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/exchangeToken", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": `Basic ${creds}`
-    },
-    body: body.toString(),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code })
   });
 
   if (!res.ok) {
-    console.error("❌ Token exchange failed:", await res.text());
+    console.error("Token exchange FAILED", await res.text());
     return null;
   }
 
-  return res.json();
+  return res.json(); // { idToken, accessToken, refreshToken }
 }
 
 
@@ -83,16 +69,18 @@ function parseJwt(token) {
 }
 
 // INIT AUTH
+
+
 async function initAuth() {
   if (code) {
     const tokenData = await exchangeCodeForTokens(code);
   
-    if (!tokenData || !tokenData.id_token) {
-      console.error("❌ No id_token returned.");
+    if (!tokenData || !tokenData.idToken) {
+      console.error("❌ No idToken returned.");
       return;
     }
   
-    const idToken = tokenData.id_token;
+    const idToken = tokenData.idToken;
     const payload = parseJwt(idToken);
   
     if (!payload) {
@@ -105,24 +93,21 @@ async function initAuth() {
       payload.username ||
       payload.email ||
       payload.sub;
-      
-      console.log("USERNAME FROM COGNITO:", username);
 
-      currentUsername = username;   // ⭐ FIX: now available everywhere
-      localStorage.setItem("username", username);
-      localStorage.setItem("idToken", idToken);
-      
-      user = { username };
-      
+    console.log("USERNAME FROM COGNITO:", username);
+
+    currentUsername = username;
+    localStorage.setItem("username", username);
+    localStorage.setItem("idToken", idToken);
+
+    user = { username };
 
     welcomeMessage.textContent = `Welcome!`;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
 
-    // load groceries immediately
     loadGroceryList();
 
-    // Clean URL
     const cleanURL = window.location.origin + window.location.pathname;
     window.history.replaceState({}, "", cleanURL);
 
@@ -130,17 +115,17 @@ async function initAuth() {
     const stored = localStorage.getItem("username");
     if (stored) {
       user = { username: stored };
-      currentUsername = stored;   // ⭐⭐ Fixes the entire problem!
-      
+      currentUsername = stored;
+
       welcomeMessage.textContent = `Welcome!`;
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
 
       loadGroceryList();
     }
+  }
 }
 
-}
 
 
 
