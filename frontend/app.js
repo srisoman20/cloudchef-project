@@ -77,6 +77,7 @@ function parseJwt(token) {
 
 // INIT AUTH
 async function initAuth() {
+  console.log("USERNAME FROM COGNITO:", username);
   if (code) {
     const tokenData = await exchangeCodeForTokens(code);
 
