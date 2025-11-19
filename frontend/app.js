@@ -230,6 +230,8 @@ async function generateRecipe() {
       i.qty ? `${i.qty} ${i.name}` : i.name
     );
 
+    console.log("✅ Ingredients sent to API:", ingredients);
+
     const response = await fetch(API_GENERATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -237,6 +239,7 @@ async function generateRecipe() {
     });
 
     const data = await response.json();
+    console.log("🤖 AI RESPONSE:", data);
 
     if (!data.recipes) {
       output.innerHTML = "⚠️ No recipes returned from AI.";
@@ -250,38 +253,31 @@ async function generateRecipe() {
       .filter(r => r.length > 0);
 
     let fullHTML = "";
+    window.generatedRecipes = [];
 
     recipeBlocks.forEach((block, idx) => {
       const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
 
-      const titleLine = lines.find(
-        l =>
-          !/^description|^time|^prep|^ingredients|^instructions|^nutrition/i.test(
-            l.toLowerCase()
-          )
-      );
+      const titleLine = lines.find(l => !/^description|^time|^ingredients|^instructions|^nutrition/i.test(l.toLowerCase()));
       const title = titleLine || `Recipe ${idx + 1}`;
 
-      const description = (
-        lines.find(l => l.toLowerCase().startsWith("description")) || ""
-      )
+      const description = (lines.find(l => l.toLowerCase().startsWith("description")) || "")
         .replace(/^description[:\-]?\s*/i, "")
         .trim();
 
-      const timeMatch = lines.find(l => l.toLowerCase().startsWith("time:"));
-      const servingsMatch = lines.find(l => l.toLowerCase().startsWith("servings:"));
-
-      let prepInfo = "";
-      if (timeMatch && servingsMatch) {
-        const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
-        const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
-        prepInfo = `⏱ Time: ${time} | 🍽 Servings: ${servings}`;
-      }
+      // ✅ FIX: Combine time + servings into a single line if both exist
+      const timeServingLine = lines.find(l =>
+        l.toLowerCase().includes("time") && l.toLowerCase().includes("servings")
+      );
+      const prepInfo = timeServingLine
+        ? timeServingLine.replace(/^time[:\-]?\s*/i, "").trim()
+        : "";
 
       let ingredientsArr = [];
       let instructionsArr = [];
       let nutritionArr = [];
-      let suggestionsArr = [];
+      let suggestion = "";
+
       let currentSection = null;
 
       for (const line of lines) {
@@ -300,7 +296,7 @@ async function generateRecipe() {
           continue;
         }
         if (lower.startsWith("suggestion")) {
-          suggestionsArr.push(line.replace(/^suggestion[:\-]?\s*/i, "").trim());
+          suggestion = line.replace(/^suggestion[:\-]?\s*/i, "").trim();
           continue;
         }
 
@@ -309,20 +305,20 @@ async function generateRecipe() {
           if (clean) ingredientsArr.push(clean);
         } else if (currentSection === "instructions" && line) {
           const clean = line.replace(/^(\d+[\.\)]\s*)/, "").trim();
-          if (clean && !/^suggestion/i.test(clean)) instructionsArr.push(clean);
+          if (clean) instructionsArr.push(clean);
         } else if (currentSection === "nutrition" && line) {
           const clean = line.replace(/^[-•\s]+/, "").trim();
           if (clean) nutritionArr.push(clean);
         }
       }
 
+      window.generatedRecipes.push({ title, ingredientsArr, instructionsArr, nutritionArr, suggestion });
+
       fullHTML += `
-        <div class="recipe-card">
-          <div class="recipe-header">
-            <h2>${title}</h2>
-            ${description ? `<p class="recipe-desc">${description}</p>` : ""}
-            ${prepInfo ? `<div class="prep-info"><span>${prepInfo}</span></div>` : ""}
-          </div>
+        <div class="recipe-card" id="recipe-${idx}">
+          <h2>${title}</h2>
+          ${description ? `<p class="recipe-desc">${description}</p>` : ""}
+          ${prepInfo ? `<p class="prep-info">⏱ ${prepInfo}</p>` : ""}
 
           <div class="recipe-grid">
             <div class="recipe-col ingredients">
@@ -331,48 +327,48 @@ async function generateRecipe() {
             </div>
             <div class="recipe-col instructions">
               <h3>👩‍🍳 Instructions</h3>
-              <ol>${instructionsArr.map(s => `<li>${s}</li>`).join("")}</ol>
+              <ol>${instructionsArr.map(step => `<li>${step}</li>`).join("")}</ol>
             </div>
           </div>
 
           ${
             nutritionArr.length
-              ? (() => {
-                  const nutritionHTML = nutritionArr
-                    .map(n => {
-                      const [label, value] = n.split(":").map(s => s.trim());
-                      return `
-                        <div class="nutrition-item">
-                          <span class="nutrition-label">${label || ""}</span>
-                          <span class="nutrition-value">${value || ""}</span>
-                        </div>
-                      `;
-                    })
-                    .join("");
-                  return `
-                    <div class="nutrition-section">
-                      <h4>Nutrition Facts (per serving)</h4>
-                      <div class="nutrition-grid">
-                        ${nutritionHTML}
-                      </div>
-                    </div>
-                  `;
-                })()
+              ? `
+                <div class="nutrition-section">
+                  <h4>Nutrition Facts (per serving)</h4>
+                  <div class="nutrition-grid">
+                    ${nutritionArr
+                      .map((n) => {
+                        const [label, value] = n.split(":").map((x) => x.trim());
+                        return `
+                          <div class="nutrition-item">
+                            <span class="nutrition-label">${label || ""}</span>
+                            <strong class="nutrition-value">${value || ""}</strong>
+                          </div>`;
+                      })
+                      .join("")}
+                  </div>
+                </div>`
               : ""
           }
 
           ${
-            suggestionsArr.length
+            suggestion
               ? `<div class="suggestion-box">
-                  <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}  
-                  <button class="suggestion-btn"
-                    onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
+                  <strong>💡 Suggestion:</strong> ${suggestion}
+                  <button class="suggestion-btn" onclick="addSuggestionToGrocery('${suggestion.replace(/'/g, "\\'")}')">
                     ➕ Add Ingredients to Grocery
                   </button>
                 </div>`
               : ""
-          }          
-      `;
+          }
+
+          <div class="save-section">
+            <button class="save-btn" onclick="saveRecipeFromCard(${idx}, '${title.replace(/'/g, "\\'")}')">
+              💾 Save Recipe
+            </button>
+          </div>
+        </div>`;
     });
 
     output.innerHTML = fullHTML;
@@ -382,6 +378,62 @@ async function generateRecipe() {
     output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
   }
 }
+
+
+
+// helper for generate recipe
+async function saveRecipeFromCard(index, title) {
+  const recipe = window.generatedRecipes[index];
+  if (!recipe) {
+    alert("❌ No recipe data found.");
+    return;
+  }
+function addSuggestionToGrocery(suggestion) {
+  alert("🛒 Added to grocery list: " + suggestion);
+  // Later, you can extend this to actually save to DynamoDB or localStorage.
+}
+
+
+  // ✅ Get Cognito token from localStorage
+  const token = localStorage.getItem("idToken");
+  if (!token) {
+    alert("⚠️ Please sign in before saving recipes.");
+    return;
+  }
+
+  const recipeData = {
+    title: recipe.title,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
+    nutrition: recipe.nutrition,
+    suggestion: recipe.suggestion || "",
+  };
+
+  try {
+    const response = await fetch(API_SAVE, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // ✅ send JWT for user verification
+      },
+      body: JSON.stringify(recipeData),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("✅ Recipe saved successfully!");
+    } else {
+      console.error("Lambda Error:", data);
+      alert("❌ Failed to save recipe: " + data.message);
+    }
+  } catch (error) {
+    console.error("SAVE ERROR:", error);
+    alert("❌ Failed to save recipe.");
+  }
+}
+
+
+
 
 // ============================
 // MULTI-IMAGE INGREDIENT DETECTION
@@ -432,37 +484,37 @@ async function analyzeImage() {
   }
 }
 
-// ============================
-// SAVE RECIPE
-// ============================
-const API_SAVE =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
+// // ============================
+// // SAVE RECIPE
+// // ============================
+// const API_SAVE =
+//   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
 
-async function saveRecipe() {
-  const output = document.getElementById("output");
-  output.innerHTML = "💾 Saving recipe...";
+// async function saveRecipe() {
+//   const output = document.getElementById("output");
+//   output.innerHTML = "💾 Saving recipe...";
 
-  try {
-    const recipeData = {
-      title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
-      ingredients: ingredientArray.map((i) => i.name),
-      quantities: ingredientArray.map((i) => i.qty),
-      timestamp: new Date().toISOString(),
-    };
+//   try {
+//     const recipeData = {
+//       title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
+//       ingredients: ingredientArray.map((i) => i.name),
+//       quantities: ingredientArray.map((i) => i.qty),
+//       timestamp: new Date().toISOString(),
+//     };
 
-    const response = await fetch(API_SAVE, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(recipeData),
-    });
+//     const response = await fetch(API_SAVE, {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify(recipeData),
+//     });
 
-    const data = await response.json();
-    output.innerHTML = `✅ ${data.message}`;
-  } catch (e) {
-    console.error(e);
-    output.innerHTML = "❌ Failed to save recipe.";
-  }
-}
+//     const data = await response.json();
+//     output.innerHTML = `✅ ${data.message}`;
+//   } catch (e) {
+//     console.error(e);
+//     output.innerHTML = "❌ Failed to save recipe.";
+//   }
+// }
 
 // ============================
 // GROCERY SYSTEM (FIXES ADDED)
