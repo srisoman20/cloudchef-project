@@ -444,6 +444,7 @@ async function saveGeneratedRecipe(index) {
   }
 
   const recipe = generatedRecipes[index];
+  const idToken = localStorage.getItem("idToken");  // ⭐ GET JWT TOKEN
 
   const payload = {
     username: currentUsername,
@@ -454,9 +455,9 @@ async function saveGeneratedRecipe(index) {
   try {
     const res = await fetch(API_SAVE_RECIPE, {
       method: "POST",
-      headers: {
+      headers: { 
         "Content-Type": "application/json",
-        "Authorization": localStorage.getItem("idToken")
+        "Authorization": idToken   // ⭐ THE MISSING PIECE
       },
       body: JSON.stringify(payload)
     });
@@ -473,6 +474,7 @@ async function saveGeneratedRecipe(index) {
     alert("❌ Error saving recipe.");
   }
 }
+
 
 
 
