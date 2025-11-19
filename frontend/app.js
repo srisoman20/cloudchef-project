@@ -364,11 +364,14 @@ async function generateRecipe() {
           ${
             suggestionsArr.length
               ? `<div class="suggestion-box">
-                  <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
+                  <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}  
+                  <button class="suggestion-btn"
+                    onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
+                    ➕ Add Ingredients to Grocery
+                  </button>
                 </div>`
               : ""
-          }
-        </div>
+          }          
       `;
     });
 
@@ -497,6 +500,27 @@ async function addIngredientsToGrocery(items) {
   alert("Added to grocery list!");
   loadGroceryList();
 }
+// Add suggestion ingredients to grocery list
+function addSuggestionToGrocery(suggestionText) {
+  if (!suggestionText) return;
+
+  // Extract ingredients (words like onions, bell peppers)
+  const items = suggestionText
+    .toLowerCase()
+    .replace(/[^\w\s]/g, "")      // Remove punctuation
+    .split(" ")
+    .filter(word =>
+      ["onion", "onions", "pepper", "peppers", "bell", "garlic", "tomato", "tomatoes"].includes(word)
+    );
+
+  if (!items.length) {
+    alert("No valid grocery items detected.");
+    return;
+  }
+
+  addIngredientsToGrocery(items);
+}
+
 
 // Manual add
 async function manualAddGrocery() {

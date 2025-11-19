@@ -1,3 +1,19 @@
+.suggestion-btn {
+  margin-left: 20px;
+  padding: 6px 12px;
+  background-color: #ff7b47;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.suggestion-btn:hover {
+  background-color: #ff5722;
+}
+
+
 /* Grocery List Styling */
 .grocery-input {
   display: flex;
