@@ -216,7 +216,7 @@ function renderIngredients() {
 // UPDATED GENERATE RECIPE (with Save Buttons)
 // ============================
 
-const API_GENERATE = "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/generate";
+const API_GENERATE = "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/generate";
 
 let generatedRecipes = []; // <- NEW: stores all recipes generated in this batch
 
@@ -426,7 +426,7 @@ async function generateRecipe() {
 }
 
 const API_SAVE_RECIPE =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
 
 async function saveGeneratedRecipe(index) {
   if (!user) {
@@ -466,10 +466,10 @@ async function saveGeneratedRecipe(index) {
 // SAVED RECIPES API ENDPOINTS + CODE
 // ==================================
 const API_GET_SAVED =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/getRecipes";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/getRecipes";
 
 const API_DELETE_SAVED =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/deleteRecipe";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/deleteRecipe";
 
 async function loadSavedRecipes() {
   if (!currentUsername) {
@@ -580,7 +580,7 @@ async function deleteSavedRecipe(userId, recipeID) {
 // MULTI-IMAGE INGREDIENT DETECTION
 // ============================
 const API_ANALYZE =
-  "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/analyze";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/analyze";
 
 async function analyzeImage() {
   const fileInput = document.getElementById("imageUpload");
@@ -629,11 +629,11 @@ async function analyzeImage() {
 // GROCERY SYSTEM (FIXES ADDED)
 // ============================
 const API_GROCERY_ADD =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/addGrocery";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/addGrocery";
 const API_GROCERY_GET =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/getGrocery";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/getGrocery";
 const API_GROCERY_REMOVE =
-  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/removeGrocery";
+  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/removeGrocery";
 
 // Add ingredients from recipe card
 async function addIngredientsToGrocery(items) {
