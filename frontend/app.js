@@ -216,7 +216,7 @@ function renderIngredients() {
 // UPDATED GENERATE RECIPE (with Save Buttons)
 // ============================
 
-const API_GENERATE = "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/generate";
+const API_GENERATE = "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/generate";
 
 let generatedRecipes = []; // <- NEW: stores all recipes generated in this batch
 
@@ -580,7 +580,7 @@ async function deleteSavedRecipe(userId, recipeID) {
 // MULTI-IMAGE INGREDIENT DETECTION
 // ============================
 const API_ANALYZE =
-  "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/analyze";
+  "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/analyze";
 
 async function analyzeImage() {
   const fileInput = document.getElementById("imageUpload");
