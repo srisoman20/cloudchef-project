@@ -1,5 +1,7 @@
 console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
 
+console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
+
 // ============================
 // COGNITO CONFIG (FIXED VERSION)
 // ============================
@@ -46,31 +48,52 @@ async function exchangeCodeForTokens(code) {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: CLIENT_ID,
-    code,
+    code: code,
     redirect_uri: REDIRECT_URI,
   });
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
+    body: body.toString(), // 🔥 FIXED — MUST BE STRING
   });
 
-  return res.json();
+  if (!res.ok) {
+    console.error("❌ Token exchange failed:", await res.text());
+    return null;
+  }
+
+  return await res.json();
 }
 
-// Parse JWT
+// Parse JWT safely
 function parseJwt(token) {
-  return JSON.parse(atob(token.split(".")[1]));
+  if (!token) return null; // 🔥 FIXED
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (e) {
+    console.error("JWT parse error:", e, token);
+    return null;
+  }
 }
 
 // INIT AUTH
 async function initAuth() {
   if (code) {
     const tokenData = await exchangeCodeForTokens(code);
-    const idToken = tokenData.id_token;
 
+    if (!tokenData || !tokenData.id_token) {
+      console.error("❌ No id_token returned.");
+      return;
+    }
+
+    const idToken = tokenData.id_token;
     const payload = parseJwt(idToken);
+
+    if (!payload) {
+      console.error("❌ JWT payload empty.");
+      return;
+    }
 
     const username =
       payload["cognito:username"] ||
@@ -87,7 +110,10 @@ async function initAuth() {
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
 
-    // Clean URL (remove ?code=)
+    // load groceries immediately
+    loadGroceryList();
+
+    // Clean URL
     const cleanURL = window.location.origin + window.location.pathname;
     window.history.replaceState({}, "", cleanURL);
 
@@ -98,12 +124,13 @@ async function initAuth() {
       welcomeMessage.textContent = `Welcome, ${stored}!`;
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
+
+      loadGroceryList(); // 🔥 FIXED – loads groceries after refresh
     }
   }
 }
 
 initAuth();
-
 
 
 // ============================
@@ -424,7 +451,7 @@ async function saveRecipe() {
 }
 
 // ============================
-// GROCERY SYSTEM (USERNAME VERSION)
+// GROCERY SYSTEM (FIXES ADDED)
 // ============================
 const API_GROCERY_ADD =
   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/addGrocery";
