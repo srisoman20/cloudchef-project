@@ -477,10 +477,8 @@ async function addIngredientsToGrocery(items) {
     headers: {
         "Content-Type": "application/json"
     },
-    body: JSON.stringify({
-        username,
-        items: [itemName]
-    })
+    body: JSON.stringify({ username: currentUsername, items })
+
 });
 
 
@@ -526,10 +524,7 @@ async function removeGroceryItem(itemName) {
   await fetch(API_GROCERY_REMOVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username: user.username,
-      itemName,
-    }),
+    body: JSON.stringify({ username: currentUsername, items }),
   });
 
   loadGroceryList();
