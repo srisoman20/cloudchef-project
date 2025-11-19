@@ -1,85 +1,115 @@
 console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
 // ============================
-// COGNITO CONFIG (FIXED VERSION)
+// COGNITO CONFIG (FIXED)
 // ============================
 const CLIENT_ID = "4c9mk38r0drvestg77l0no5th6";
 const CLIENT_SECRET = "3cve697td0ldnkjao0tim7mttlbignm4fu3i371mp47qsnlvh8k";
 const COGNITO_DOMAIN = "https://us-west-1xj65bt4pz.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
-
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
-let user = null;
 let currentUsername = null;
 
-// LOGIN BUTTON
+// LOGIN
 loginBtn.onclick = () => {
   const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI
-  )}&scope=openid+email`;
+  )}&scope=openid+email+profile`;
   window.location.href = url;
 };
 
-// LOGOUT BUTTON
+// LOGOUT
 logoutBtn.onclick = () => {
-  localStorage.removeItem("username");
-  localStorage.removeItem("idToken");
-
-  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+  localStorage.clear();
+  window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
     REDIRECT_URI
   )}`;
-  window.location.href = url;
 };
 
-// Get auth code
-function getQueryParam(n) {
-  return new URL(window.location.href).searchParams.get(n);
+// UTIL: Parse JWT
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
 }
-
-const code = getQueryParam("code");
 
 // Exchange auth code for tokens
 async function exchangeCodeForTokens(code) {
   const url = `${COGNITO_DOMAIN}/oauth2/token`;
-
   const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
-
   const body = new URLSearchParams({
     grant_type: "authorization_code",
+    client_id: CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
     code,
-    redirect_uri: REDIRECT_URI
   });
 
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": `Basic ${creds}`
+      Authorization: `Basic ${creds}`,
     },
     body: body.toString(),
   });
 
   if (!res.ok) {
-    console.error("❌ Token exchange failed:", await res.text());
+    console.error("Token exchange failed:", await res.text());
     return null;
   }
 
   return res.json();
 }
 
+// Main Auth Init
+async function initAuth() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get("code");
 
-// Parse JWT safely
-function parseJwt(token) {
-  if (!token) return null; // 🔥 FIXED
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch (e) {
-    console.error("JWT parse error:", e, token);
-    return null;
+  // Case 1: User just logged in
+  if (code) {
+    const tokenData = await exchangeCodeForTokens(code);
+    if (tokenData?.id_token) {
+      localStorage.setItem("idToken", tokenData.id_token);
+      const payload = parseJwt(tokenData.id_token);
+      const username =
+        payload["cognito:username"] ||
+        payload.email ||
+        payload.username ||
+        payload.sub;
+      localStorage.setItem("username", username);
+      currentUsername = username;
+      welcomeMessage.textContent = `Welcome, ${username}!`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+      // remove query params
+      window.history.replaceState({}, document.title, window.location.pathname);
+      loadGroceryList();
+      return;
+    }
   }
+
+  // Case 2: Already logged in (localStorage)
+  const storedToken = localStorage.getItem("idToken");
+  const storedUser = localStorage.getItem("username");
+  if (storedToken && storedUser) {
+    currentUsername = storedUser;
+    welcomeMessage.textContent = `Welcome, ${storedUser}!`;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+    loadGroceryList();
+    return;
+  }
+
+  // Case 3: Logged out
+  welcomeMessage.textContent = "";
+  loginBtn.style.display = "inline-block";
+  logoutBtn.style.display = "none";
 }
 
 // INIT AUTH
