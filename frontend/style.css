@@ -1,3 +1,63 @@
+/* Grocery List Styling */
+.grocery-input {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin: 20px 0 30px;
+}
+
+.grocery-input input {
+  flex: 0 0 260px;
+  padding: 12px 16px;
+  border: 2px solid #ffd9c7;
+  border-radius: 12px;
+  font-size: 15px;
+  background: #fffaf4;
+  transition: 0.2s ease-in-out;
+}
+
+.grocery-input input:focus {
+  border-color: #ff7449;
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 116, 73, 0.2);
+}
+
+/* Add Button */
+.grocery-add-btn {
+  padding: 12px 24px;
+  background: #ff7449;
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease-in-out;
+}
+
+.grocery-add-btn:hover {
+  background: #e8672e;
+  transform: translateY(-2px);
+}
+
+.grocery-add-btn:active {
+  transform: scale(0.97);
+}
+
+/* Grocery list items */
+#groceryList li {
+  background: #fff7f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 16px;
+}
+
 /* ===========================
    RESET + NAVBAR FIX
    =========================== */
@@ -403,4 +463,5 @@ nav {
   font-size: 18px;
   color: #000;
 }
+
 

@@ -9,7 +9,6 @@
 
 <body>
 
-  <!-- NAVBAR -->
   <header class="navbar">
     <div class="logo">CloudChef</div>
 
@@ -26,35 +25,28 @@
     </div>
   </header>
 
-  <!-- PAGE WRAPPER -->
   <div class="page-container">
 
     <!-- MAIN PAGE -->
     <div id="mainPage" class="content-card">
       <h2>What's in your fridge?</h2>
 
-      <!-- FILE UPLOAD -->
-  <input type="file" id="imageUpload" accept="image/*" multiple />
-      
+      <input type="file" id="imageUpload" accept="image/*" multiple />
 
-      <!-- INGREDIENT + QUANTITY INPUT -->
       <div class="ingredient-row">
         <input id="ingredientName" type="text" placeholder="Ingredient (e.g., tomato)">
         <input id="ingredientQty" type="text" placeholder="Quantity">
         <button class="add-btn" onclick="addIngredient()">+</button>
       </div>
 
-      <!-- INGREDIENT LIST -->
       <ul id="ingredientList"></ul>
 
-      <!-- ACTION BUTTONS -->
       <div class="button-row">
         <button id="generateBtn" class="primary-btn">Generate Recipe</button>
         <button id="detectBtn" class="outline-btn">Detect Ingredients</button>
         <button id="saveBtn" class="outline-btn">Save Recipe</button>
       </div>
 
-      <!-- OUTPUT AREA -->
       <div id="output" class="output-box"></div>
     </div>
 
@@ -67,20 +59,19 @@
     <!-- GROCERY PAGE -->
     <div id="groceryPage" class="content-card hidden">
       <h2>Grocery List</h2>
-      <p class="empty-msg">Your grocery list is empty</p>
+
+      <div class="grocery-input">
+        <input id="manualGrocery" type="text" placeholder="Add grocery item">
+        <button onclick="manualAddGrocery()" class="grocery-add-btn">Add</button>
+      </div>
+      <ul id="groceryList"></ul>
+
+      <ul id="groceryList"></ul>
     </div>
 
   </div>
 
-<div id="output" class="output-box"></div>
-
-
-
-  <!-- IMPORTANT: FORCE-LOAD JS WITH VERSION -->
   <script src="app.js?v=12345"></script>
-
-
-
 </body>
 </html>
 

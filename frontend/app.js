@@ -1,4 +1,4 @@
-console.log("🔥 Loaded NEW Bedrock-enabled app.js");
+console.log("🔥 Loaded CloudChef app.js with Grocery System");
 
 // ============================
 // COGNITO CONFIG
@@ -11,6 +11,44 @@ const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
+let user = null;
+let idToken = null;
+
+// Parse JWT payload
+function parseJwt(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (e) {
+    return null;
+  }
+}
+
+function getQueryParam(n) {
+  return new URL(window.location.href).searchParams.get(n);
+}
+
+const code = getQueryParam("code");
+
+// Exchange authorization code for tokens
+async function exchangeCodeForTokens(code) {
+  const url = `${COGNITO_DOMAIN}/oauth2/token`;
+
+  const body = new URLSearchParams({
+    grant_type: "authorization_code",
+    client_id: CLIENT_ID,
+    code,
+    redirect_uri: REDIRECT_URI,
+  });
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+
+  return res.json();
+}
+
 // LOGIN
 loginBtn.onclick = () => {
   const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
@@ -21,26 +59,40 @@ loginBtn.onclick = () => {
 
 // LOGOUT
 logoutBtn.onclick = () => {
-  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+  localStorage.removeItem("idToken");
+  localStorage.removeItem("userEmail");
+  window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
     REDIRECT_URI
   )}`;
-  window.location.href = url;
 };
 
-function getQueryParam(n) {
-  return new URL(window.location.href).searchParams.get(n);
+// INIT AUTH
+async function initAuth() {
+  if (code) {
+    const tokens = await exchangeCodeForTokens(code);
+    idToken = tokens.id_token;
+    user = parseJwt(idToken);
+
+    localStorage.setItem("idToken", idToken);
+    localStorage.setItem("userEmail", user.email);
+
+    welcomeMessage.textContent = `Welcome, ${user.email}!`;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+  } else {
+    idToken = localStorage.getItem("idToken");
+    const email = localStorage.getItem("userEmail");
+
+    if (idToken && email) {
+      user = { email };
+      welcomeMessage.textContent = `Welcome, ${email}!`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+    }
+  }
 }
 
-const code = getQueryParam("code");
-
-if (code) {
-  welcomeMessage.textContent = "Welcome! You are logged in 🎉";
-  loginBtn.style.display = "none";
-  logoutBtn.style.display = "inline-block";
-} else {
-  loginBtn.style.display = "inline-block";
-  logoutBtn.style.display = "none";
-}
+initAuth();
 
 // ============================
 // PAGE NAVIGATION
@@ -51,7 +103,10 @@ const groceryPage = document.getElementById("groceryPage");
 
 document.getElementById("nav-generate").onclick = () => showPage("main");
 document.getElementById("nav-saved").onclick = () => showPage("saved");
-document.getElementById("nav-grocery").onclick = () => showPage("grocery");
+document.getElementById("nav-grocery").onclick = () => {
+  showPage("grocery");
+  loadGroceryList();
+};
 
 function showPage(page) {
   mainPage.classList.add("hidden");
@@ -102,9 +157,9 @@ function renderIngredients() {
       (ing, i) => `
       <li>
         <span>${ing.name} — <strong>${ing.qty || "1"}</strong></span>
-        <button onclick="removeIngredient(${i})" style="color:red;background:none;border:none;font-size:18px;cursor:pointer;">✗</button>
-      </li>
-    `
+        <button onclick="removeIngredient(${i})" 
+          style="color:red;background:none;border:none;font-size:18px;cursor:pointer;">✗</button>
+      </li>`
     )
     .join("");
 }
@@ -310,77 +365,54 @@ async function generateRecipe() {
   }
 }
 
-
-
-
 // ============================
-// MULTI-IMAGE INGREDIENT DETECTION (BEDROCK VERSION)
+// MULTI-IMAGE INGREDIENT DETECTION
 // ============================
 const API_ANALYZE =
   "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/analyze";
 
-  async function analyzeImage() {
-    console.log("📸 analyzeImage() called");
-  
-    const fileInput = document.getElementById("imageUpload");
-    const output = document.getElementById("output");
-  
-    if (!fileInput.files.length) {
-      output.innerHTML = "⚠️ No images selected.";
-      return;
-    }
-  
-    output.textContent = "🔍 Detecting ingredients...";
-  
-    // Read single file only
-    const file = fileInput.files[0];
-  
-    const base64 = await new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.readAsDataURL(file);
-    });
-  
-    console.log("📸 Loaded:", file.name, "len:", base64.length);
-  
-    try {
-      const response = await fetch(API_ANALYZE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: [base64] })
-      });
-  
-      const data = await response.json();
-      console.log("Analyze Response:", data);
-  
-      if (data.ingredients?.length > 0) {
-  
-        // Add detected items to ingredient list
-        data.ingredients.forEach(item => {
-          ingredientArray.push({
-            name: item.name,
-            qty: item.count
-          });
-        });
-  
-        renderIngredients();
-  
-        // Reset the file input
-        fileInput.value = "";
-  
-        // Clear output message
-        output.innerHTML = "";
-  
-      } else {
-        output.innerHTML = `⚠️ No ingredients detected.`;
-      }
-  
-    } catch (err) {
-      console.error("Analyze Error:", err);
-      output.innerHTML = "❌ Error analyzing image.";
-    }
+async function analyzeImage() {
+  const fileInput = document.getElementById("imageUpload");
+  const output = document.getElementById("output");
+
+  if (!fileInput.files.length) {
+    output.innerHTML = "⚠️ No images selected.";
+    return;
   }
-  
+
+  output.textContent = "🔍 Detecting ingredients...";
+
+  const file = fileInput.files[0];
+
+  const base64 = await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(",")[1]);
+    reader.readAsDataURL(file);
+  });
+
+  try {
+    const response = await fetch(API_ANALYZE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ images: [base64] }),
+    });
+
+    const data = await response.json();
+
+    if (data.ingredients?.length > 0) {
+      data.ingredients.forEach((i) =>
+        ingredientArray.push({ name: i.name, qty: i.count })
+      );
+      renderIngredients();
+      fileInput.value = "";
+      output.innerHTML = "";
+    } else {
+      output.innerHTML = "⚠️ No ingredients detected.";
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
 
 // ============================
 // SAVE RECIPE
@@ -407,13 +439,85 @@ async function saveRecipe() {
     });
 
     const data = await response.json();
-    console.log("SAVE RESPONSE:", data);
-
-    output.innerHTML = `✅ ${data.message || "Recipe saved successfully!"}`;
-  } catch (error) {
-    console.error("SAVE ERROR:", error);
-    output.innerHTML = `<p style="color:red;">❌ Failed to save recipe.</p>`;
+    output.innerHTML = `✅ ${data.message}`;
+  } catch (e) {
+    console.error(e);
+    output.innerHTML = "❌ Failed to save recipe.";
   }
+}
+
+// ============================
+// GROCERY SYSTEM
+// ============================
+const API_GROCERY_ADD =
+  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/addGrocery";
+const API_GROCERY_GET =
+  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/getGrocery";
+const API_GROCERY_REMOVE =
+  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/removeGrocery";
+
+// Add ingredients from recipe card
+async function addIngredientsToGrocery(items) {
+  if (!user) {
+    alert("Please sign in to add groceries.");
+    return;
+  }
+
+  await fetch(API_GROCERY_ADD, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: user.email,
+      items,
+    }),
+  });
+
+  alert("Added to grocery list!");
+  loadGroceryList();
+}
+
+// Manual add
+async function manualAddGrocery() {
+  const input = document.getElementById("manualGrocery");
+  const item = input.value.trim();
+  if (!item) return;
+
+  await addIngredientsToGrocery([item]);
+  input.value = "";
+}
+
+// Load grocery list
+async function loadGroceryList() {
+  if (!user) return;
+
+  const res = await fetch(`${API_GROCERY_GET}?email=${user.email}`);
+  const data = await res.json();
+
+  const list = document.getElementById("groceryList");
+  list.innerHTML = data.items
+    .map(
+      (item) => `
+      <li>
+        ${item}
+        <button onclick="removeGroceryItem('${item}')"
+          style="color:red;background:none;border:none;font-size:16px;cursor:pointer;">❌</button>
+      </li>`
+    )
+    .join("");
+}
+
+// Remove grocery item
+async function removeGroceryItem(itemName) {
+  await fetch(API_GROCERY_REMOVE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: user.email,
+      itemName,
+    }),
+  });
+
+  loadGroceryList();
 }
 
 // ============================
@@ -422,4 +526,5 @@ async function saveRecipe() {
 document.getElementById("detectBtn").addEventListener("click", analyzeImage);
 document.getElementById("generateBtn").addEventListener("click", generateRecipe);
 document.getElementById("saveBtn").addEventListener("click", saveRecipe);
+
 
