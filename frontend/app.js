@@ -533,24 +533,18 @@ async function loadGroceryList() {
 
 // Remove grocery item
 async function removeGroceryItem(itemName) {
-  const res = await fetch(API_GROCERY_REMOVE, {
+  await fetch(API_GROCERY_REMOVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username: currentUsername,
-      deleteItem: itemName   // ✔ correct field name
+      items: [itemName]   // ✔ SEND THE ITEM WE WANT TO DELETE
     })
   });
 
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("❌ Remove failed:", text);
-    alert("❌ Failed to remove grocery item.");
-    return;
-  }
-
   loadGroceryList();
 }
+
 
 
 // ============================
