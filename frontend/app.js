@@ -11,17 +11,21 @@ const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
-let user = null;
-let idToken = null;
+// LOGIN
+loginBtn.onclick = () => {
+  const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+    REDIRECT_URI
+  )}`;
+  window.location.href = url;
+};
 
-// Parse JWT payload
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch (e) {
-    return null;
-  }
-}
+// LOGOUT
+logoutBtn.onclick = () => {
+  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+    REDIRECT_URI
+  )}`;
+  window.location.href = url;
+};
 
 function getQueryParam(n) {
   return new URL(window.location.href).searchParams.get(n);
@@ -29,86 +33,14 @@ function getQueryParam(n) {
 
 const code = getQueryParam("code");
 
-// Exchange authorization code for tokens
-async function exchangeCodeForTokens(code) {
-  const url = `${COGNITO_DOMAIN}/oauth2/token`;
-
-  const body = new URLSearchParams({
-    grant_type: "authorization_code",
-    client_id: CLIENT_ID,
-    code,
-    redirect_uri: REDIRECT_URI,
-  });
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body,
-  });
-
-  return res.json();
+if (code) {
+  welcomeMessage.textContent = "Welcome! You are logged in 🎉";
+  loginBtn.style.display = "none";
+  logoutBtn.style.display = "inline-block";
+} else {
+  loginBtn.style.display = "inline-block";
+  logoutBtn.style.display = "none";
 }
-
-// LOGIN
-loginBtn.onclick = () => {
-  const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
-    REDIRECT_URI
-  )}&scope=openid+email`;
-  window.location.href = url;
-};
-
-// LOGOUT
-logoutBtn.onclick = () => {
-  localStorage.removeItem("idToken");
-  localStorage.removeItem("username");
-
-  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
-    REDIRECT_URI
-  )}`;
-  window.location.href = url;
-};
-
-// INIT AUTH (USERNAME VERSION)
-async function initAuth() {
-  if (code) {
-    const tokens = await exchangeCodeForTokens(code);
-    idToken = tokens.id_token;
-
-    const userInfo = parseJwt(idToken);
-
-    // Extract username from Cognito token
-    const username =
-      userInfo["cognito:username"] ||
-      userInfo.username ||
-      userInfo.preferred_username ||
-      userInfo.sub;
-
-    user = { username };
-
-    localStorage.setItem("idToken", idToken);
-    localStorage.setItem("username", username);
-
-    welcomeMessage.textContent = `Welcome, ${username}!`;
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-
-    // Remove ?code= from URL
-    const newURL = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, document.title, newURL);
-
-  } else {
-    const savedUsername = localStorage.getItem("username");
-
-    if (savedUsername) {
-      user = { username: savedUsername };
-      welcomeMessage.textContent = `Welcome, ${savedUsername}!`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-    }
-  }
-}
-
-initAuth();
 
 // ============================
 // PAGE NAVIGATION
@@ -119,10 +51,7 @@ const groceryPage = document.getElementById("groceryPage");
 
 document.getElementById("nav-generate").onclick = () => showPage("main");
 document.getElementById("nav-saved").onclick = () => showPage("saved");
-document.getElementById("nav-grocery").onclick = () => {
-  showPage("grocery");
-  loadGroceryList();
-};
+document.getElementById("nav-grocery").onclick = () => showPage("grocery");
 
 function showPage(page) {
   mainPage.classList.add("hidden");
