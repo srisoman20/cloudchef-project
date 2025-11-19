@@ -13,6 +13,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
 let user = null;
+let currentUsername = null;
 
 // LOGIN BUTTON
 loginBtn.onclick = () => {
@@ -105,12 +106,14 @@ async function initAuth() {
       payload.email ||
       payload.sub;
       
-    console.log("USERNAME FROM COGNITO:", username);
+      console.log("USERNAME FROM COGNITO:", username);
 
-    localStorage.setItem("username", username);
-    localStorage.setItem("idToken", idToken);
-
-    user = { username };
+      currentUsername = username;   // ⭐ FIX: now available everywhere
+      localStorage.setItem("username", username);
+      localStorage.setItem("idToken", idToken);
+      
+      user = { username };
+      
 
     welcomeMessage.textContent = `Welcome, ${username}!`;
     loginBtn.style.display = "none";
@@ -475,11 +478,14 @@ async function addIngredientsToGrocery(items) {
   await fetch(API_GROCERY_ADD, {
     method: "POST",
     headers: {
-        "Content-Type": "application/json"
+      "Content-Type": "application/json"
     },
-    body: JSON.stringify({ username: currentUsername, items })
+    body: JSON.stringify({
+      username: currentUsername,
+      items: items       // ✔ SEND THE REAL ITEMS
+    })
+  });
 
-});
 
 
   alert("Added to grocery list!");
@@ -500,7 +506,7 @@ async function manualAddGrocery() {
 async function loadGroceryList() {
   if (!user) return;
 
-  const res = await fetch(`${API_GROCERY_GET}?username=${user.username}`);
+  const res = await fetch(`${API_GROCERY_GET}?username=${currentUsername}`);
   const data = await res.json();
 
   const items = data.items || [];   // ← FIX
@@ -524,7 +530,7 @@ async function removeGroceryItem(itemName) {
   await fetch(API_GROCERY_REMOVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUsername, items }),
+    body: JSON.stringify({ username: currentUsername, items: [itemName] })
   });
 
   loadGroceryList();
