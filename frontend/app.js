@@ -15,13 +15,11 @@ let user = null;
 
 // LOGIN BUTTON
 loginBtn.onclick = () => {
-  window.location.href =
-    `${COGNITO_DOMAIN}/login?client_id=${CLIENT_ID}` +
-    `&response_type=code` +
-    `&scope=openid+email+profile` +
-    `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+  const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
+    REDIRECT_URI
+  )}&scope=openid+email`;
+  window.location.href = url;
 };
-
 
 // LOGOUT BUTTON
 logoutBtn.onclick = () => {
