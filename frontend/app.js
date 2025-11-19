@@ -1,13 +1,11 @@
 console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
-
-console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
-
 // ============================
 // COGNITO CONFIG (FIXED VERSION)
 // ============================
-const CLIENT_ID = "12lhjh1sc8pp2crquvgalf9bl2";
+const CLIENT_ID = "4c9mk38r0drvestg77l0no5th6";
 const COGNITO_DOMAIN = "https://cloudchef-login.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
+
 
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
