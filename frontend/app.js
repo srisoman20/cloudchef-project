@@ -475,18 +475,21 @@ async function addIngredientsToGrocery(items) {
     return;
   }
 
-  await fetch(API_GROCERY_ADD, {
+  const res = await fetch(API_GROCERY_ADD, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username: currentUsername,
-      items: items       // ✔ SEND THE REAL ITEMS
-    })
+      items: items   // ✔ correct; items is passed in as parameter
+    })    
   });
 
-
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("❌ Failed:", text);
+    alert("❌ Failed to add grocery item.");
+    return;
+  }
 
   alert("Added to grocery list!");
   loadGroceryList();
@@ -530,7 +533,10 @@ async function removeGroceryItem(itemName) {
   await fetch(API_GROCERY_REMOVE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username: currentUsername, items: [itemName] })
+    body: JSON.stringify({
+      username: currentUsername,
+      items: [itemName]   // ✔ SEND THE ITEM WE WANT TO DELETE
+    })
   });
 
   loadGroceryList();
