@@ -1,4 +1,4 @@
-console.log("🔥 Loaded CloudChef app.js with Grocery System");
+console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
 
 // ============================
 // COGNITO CONFIG
@@ -53,39 +53,55 @@ async function exchangeCodeForTokens(code) {
 loginBtn.onclick = () => {
   const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI
-  )}`;
+  )}&scope=openid+email`;
   window.location.href = url;
 };
 
 // LOGOUT
 logoutBtn.onclick = () => {
   localStorage.removeItem("idToken");
-  localStorage.removeItem("userEmail");
-  window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+  localStorage.removeItem("username");
+
+  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
     REDIRECT_URI
   )}`;
+  window.location.href = url;
 };
 
-// INIT AUTH
+// INIT AUTH (USERNAME VERSION)
 async function initAuth() {
   if (code) {
     const tokens = await exchangeCodeForTokens(code);
     idToken = tokens.id_token;
-    user = parseJwt(idToken);
+
+    const userInfo = parseJwt(idToken);
+
+    // Extract username from Cognito token
+    const username =
+      userInfo["cognito:username"] ||
+      userInfo.username ||
+      userInfo.preferred_username ||
+      userInfo.sub;
+
+    user = { username };
 
     localStorage.setItem("idToken", idToken);
-    localStorage.setItem("userEmail", user.email);
+    localStorage.setItem("username", username);
 
-    welcomeMessage.textContent = `Welcome, ${user.email}!`;
+    welcomeMessage.textContent = `Welcome, ${username}!`;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
-  } else {
-    idToken = localStorage.getItem("idToken");
-    const email = localStorage.getItem("userEmail");
 
-    if (idToken && email) {
-      user = { email };
-      welcomeMessage.textContent = `Welcome, ${email}!`;
+    // Remove ?code= from URL
+    const newURL = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, document.title, newURL);
+
+  } else {
+    const savedUsername = localStorage.getItem("username");
+
+    if (savedUsername) {
+      user = { username: savedUsername };
+      welcomeMessage.textContent = `Welcome, ${savedUsername}!`;
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
     }
@@ -174,20 +190,15 @@ async function generateRecipe() {
   output.innerHTML = "👩‍🍳 Generating recipes with AI...";
 
   try {
-    // ✅ Ensure ingredients exist
     if (!ingredientArray.length) {
       output.innerHTML = "⚠️ Please add at least one ingredient first.";
       return;
     }
 
-    // Combine ingredient name + quantity
     const ingredients = ingredientArray.map(i =>
       i.qty ? `${i.qty} ${i.name}` : i.name
     );
 
-    console.log("✅ Ingredients sent to API:", ingredients);
-
-    // ✅ Call your Lambda API
     const response = await fetch(API_GENERATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -195,20 +206,13 @@ async function generateRecipe() {
     });
 
     const data = await response.json();
-    console.log("🤖 AI RESPONSE:", data);
 
     if (!data.recipes) {
       output.innerHTML = "⚠️ No recipes returned from AI.";
       return;
     }
 
-    // ============================
-    // PARSE THE AI TEXT OUTPUT
-    // ============================
     const recipeText = data.recipes.trim();
-    console.log("🧾 Raw AI Recipe:", recipeText);
-
-    // Split by “Recipe 1:”, “Recipe 2:”, etc.
     const recipeBlocks = recipeText
       .split(/(?:^|\n)Recipe\s*\d*[:.-]?\s*/i)
       .map(r => r.trim())
@@ -219,7 +223,6 @@ async function generateRecipe() {
     recipeBlocks.forEach((block, idx) => {
       const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
 
-      // Extract title
       const titleLine = lines.find(
         l =>
           !/^description|^time|^prep|^ingredients|^instructions|^nutrition/i.test(
@@ -228,42 +231,28 @@ async function generateRecipe() {
       );
       const title = titleLine || `Recipe ${idx + 1}`;
 
-      // Description
       const description = (
         lines.find(l => l.toLowerCase().startsWith("description")) || ""
       )
         .replace(/^description[:\-]?\s*/i, "")
         .trim();
 
-      // Time + servings (prevent duplicates)
-      const timeMatch = lines.find(l =>
-        l.toLowerCase().startsWith("time:")
-      );
-      const servingsMatch = lines.find(l =>
-        l.toLowerCase().startsWith("servings:")
-      );
+      const timeMatch = lines.find(l => l.toLowerCase().startsWith("time:"));
+      const servingsMatch = lines.find(l => l.toLowerCase().startsWith("servings:"));
 
       let prepInfo = "";
       if (timeMatch && servingsMatch) {
         const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
         const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
         prepInfo = `⏱ Time: ${time} | 🍽 Servings: ${servings}`;
-      } else if (timeMatch) {
-        const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
-        prepInfo = `⏱ Time: ${time}`;
-      } else if (servingsMatch) {
-        const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
-        prepInfo = `🍽 Servings: ${servings}`;
       }
 
-      // Section arrays
       let ingredientsArr = [];
       let instructionsArr = [];
       let nutritionArr = [];
       let suggestionsArr = [];
       let currentSection = null;
 
-      // Parse sections line-by-line
       for (const line of lines) {
         const lower = line.toLowerCase();
 
@@ -296,9 +285,6 @@ async function generateRecipe() {
         }
       }
 
-      // ============================
-      // BUILD RECIPE CARD HTML
-      // ============================
       fullHTML += `
         <div class="recipe-card">
           <div class="recipe-header">
@@ -340,23 +326,21 @@ async function generateRecipe() {
                       </div>
                     </div>
                   `;
-          })()
-        : ""
-    }
+                })()
+              : ""
+          }
 
-    ${
-      suggestionsArr.length
-        ? `<div class="suggestion-box">
-            <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
-          </div>`
-        : ""
-    }
-  </div>
-`;
-
+          ${
+            suggestionsArr.length
+              ? `<div class="suggestion-box">
+                  <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
+                </div>`
+              : ""
+          }
+        </div>
+      `;
     });
 
-    // Render recipes
     output.innerHTML = fullHTML;
 
   } catch (error) {
@@ -447,7 +431,7 @@ async function saveRecipe() {
 }
 
 // ============================
-// GROCERY SYSTEM
+// GROCERY SYSTEM (USERNAME VERSION)
 // ============================
 const API_GROCERY_ADD =
   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/addGrocery";
@@ -467,7 +451,7 @@ async function addIngredientsToGrocery(items) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: user.email,
+      username: user.username,
       items,
     }),
   });
@@ -490,7 +474,7 @@ async function manualAddGrocery() {
 async function loadGroceryList() {
   if (!user) return;
 
-  const res = await fetch(`${API_GROCERY_GET}?email=${user.email}`);
+  const res = await fetch(`${API_GROCERY_GET}?username=${user.username}`);
   const data = await res.json();
 
   const list = document.getElementById("groceryList");
@@ -512,7 +496,7 @@ async function removeGroceryItem(itemName) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      email: user.email,
+      username: user.username,
       itemName,
     }),
   });
@@ -526,5 +510,4 @@ async function removeGroceryItem(itemName) {
 document.getElementById("detectBtn").addEventListener("click", analyzeImage);
 document.getElementById("generateBtn").addEventListener("click", generateRecipe);
 document.getElementById("saveBtn").addEventListener("click", saveRecipe);
-
 
