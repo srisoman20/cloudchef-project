@@ -130,13 +130,16 @@ async function initAuth() {
     const stored = localStorage.getItem("username");
     if (stored) {
       user = { username: stored };
+      currentUsername = stored;   // ⭐⭐ Fixes the entire problem!
+      
       welcomeMessage.textContent = `Welcome, ${stored}!`;
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
 
-      loadGroceryList(); // 🔥 FIXED – loads groceries after refresh
+      loadGroceryList();
     }
-  }
+}
+
 }
 
 
