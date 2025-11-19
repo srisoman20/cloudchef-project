@@ -1,115 +1,85 @@
 console.log("🔥 Loaded CloudChef app.js with Grocery System (USERNAME LOGIN VERSION)");
 // ============================
-// COGNITO CONFIG (FIXED)
+// COGNITO CONFIG (FIXED VERSION)
 // ============================
 const CLIENT_ID = "4c9mk38r0drvestg77l0no5th6";
 const CLIENT_SECRET = "3cve697td0ldnkjao0tim7mttlbignm4fu3i371mp47qsnlvh8k";
 const COGNITO_DOMAIN = "https://us-west-1xj65bt4pz.auth.us-west-1.amazoncognito.com";
 const REDIRECT_URI = "https://main.d1o5l2tvmd4zsn.amplifyapp.com/";
 
+
 const loginBtn = document.getElementById("loginBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 const welcomeMessage = document.getElementById("welcomeMessage");
 
+let user = null;
 let currentUsername = null;
 
-// LOGIN
+// LOGIN BUTTON
 loginBtn.onclick = () => {
   const url = `${COGNITO_DOMAIN}/login?response_type=code&client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI
-  )}&scope=openid+email+profile`;
+  )}&scope=openid+email`;
   window.location.href = url;
 };
 
-// LOGOUT
+// LOGOUT BUTTON
 logoutBtn.onclick = () => {
-  localStorage.clear();
-  window.location.href = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
+  localStorage.removeItem("username");
+  localStorage.removeItem("idToken");
+
+  const url = `${COGNITO_DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(
     REDIRECT_URI
   )}`;
+  window.location.href = url;
 };
 
-// UTIL: Parse JWT
-function parseJwt(token) {
-  try {
-    return JSON.parse(atob(token.split(".")[1]));
-  } catch {
-    return null;
-  }
+// Get auth code
+function getQueryParam(n) {
+  return new URL(window.location.href).searchParams.get(n);
 }
+
+const code = getQueryParam("code");
 
 // Exchange auth code for tokens
 async function exchangeCodeForTokens(code) {
   const url = `${COGNITO_DOMAIN}/oauth2/token`;
+
   const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+
   const body = new URLSearchParams({
     grant_type: "authorization_code",
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
     code,
+    redirect_uri: REDIRECT_URI
   });
 
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      Authorization: `Basic ${creds}`,
+      "Authorization": `Basic ${creds}`
     },
     body: body.toString(),
   });
 
   if (!res.ok) {
-    console.error("Token exchange failed:", await res.text());
+    console.error("❌ Token exchange failed:", await res.text());
     return null;
   }
 
   return res.json();
 }
 
-// Main Auth Init
-async function initAuth() {
-  const urlParams = new URLSearchParams(window.location.search);
-  const code = urlParams.get("code");
 
-  // Case 1: User just logged in
-  if (code) {
-    const tokenData = await exchangeCodeForTokens(code);
-    if (tokenData?.id_token) {
-      localStorage.setItem("idToken", tokenData.id_token);
-      const payload = parseJwt(tokenData.id_token);
-      const username =
-        payload["cognito:username"] ||
-        payload.email ||
-        payload.username ||
-        payload.sub;
-      localStorage.setItem("username", username);
-      currentUsername = username;
-      welcomeMessage.textContent = `Welcome, ${username}!`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
-      // remove query params
-      window.history.replaceState({}, document.title, window.location.pathname);
-      loadGroceryList();
-      return;
-    }
+// Parse JWT safely
+function parseJwt(token) {
+  if (!token) return null; // 🔥 FIXED
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch (e) {
+    console.error("JWT parse error:", e, token);
+    return null;
   }
-
-  // Case 2: Already logged in (localStorage)
-  const storedToken = localStorage.getItem("idToken");
-  const storedUser = localStorage.getItem("username");
-  if (storedToken && storedUser) {
-    currentUsername = storedUser;
-    welcomeMessage.textContent = `Welcome, ${storedUser}!`;
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-    loadGroceryList();
-    return;
-  }
-
-  // Case 3: Logged out
-  welcomeMessage.textContent = "";
-  loginBtn.style.display = "inline-block";
-  logoutBtn.style.display = "none";
 }
 
 // INIT AUTH
@@ -244,7 +214,6 @@ function renderIngredients() {
 // ============================
 // GENERATE RECIPE (Bedrock AI)
 // ============================
-const API_SAVE = "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe"
 const API_GENERATE = "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/generate";
 
 async function generateRecipe() {
@@ -261,8 +230,6 @@ async function generateRecipe() {
       i.qty ? `${i.qty} ${i.name}` : i.name
     );
 
-    console.log("✅ Ingredients sent to API:", ingredients);
-
     const response = await fetch(API_GENERATE, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -270,7 +237,6 @@ async function generateRecipe() {
     });
 
     const data = await response.json();
-    console.log("🤖 AI RESPONSE:", data);
 
     if (!data.recipes) {
       output.innerHTML = "⚠️ No recipes returned from AI.";
@@ -284,31 +250,38 @@ async function generateRecipe() {
       .filter(r => r.length > 0);
 
     let fullHTML = "";
-    window.generatedRecipes = [];
 
     recipeBlocks.forEach((block, idx) => {
       const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
 
-      const titleLine = lines.find(l => !/^description|^time|^ingredients|^instructions|^nutrition/i.test(l.toLowerCase()));
+      const titleLine = lines.find(
+        l =>
+          !/^description|^time|^prep|^ingredients|^instructions|^nutrition/i.test(
+            l.toLowerCase()
+          )
+      );
       const title = titleLine || `Recipe ${idx + 1}`;
 
-      const description = (lines.find(l => l.toLowerCase().startsWith("description")) || "")
+      const description = (
+        lines.find(l => l.toLowerCase().startsWith("description")) || ""
+      )
         .replace(/^description[:\-]?\s*/i, "")
         .trim();
 
-      // ✅ FIX: Combine time + servings into a single line if both exist
-      const timeServingLine = lines.find(l =>
-        l.toLowerCase().includes("time") && l.toLowerCase().includes("servings")
-      );
-      const prepInfo = timeServingLine
-        ? timeServingLine.replace(/^time[:\-]?\s*/i, "").trim()
-        : "";
+      const timeMatch = lines.find(l => l.toLowerCase().startsWith("time:"));
+      const servingsMatch = lines.find(l => l.toLowerCase().startsWith("servings:"));
+
+      let prepInfo = "";
+      if (timeMatch && servingsMatch) {
+        const time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
+        const servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
+        prepInfo = `⏱ Time: ${time} | 🍽 Servings: ${servings}`;
+      }
 
       let ingredientsArr = [];
       let instructionsArr = [];
       let nutritionArr = [];
-      let suggestion = "";
-
+      let suggestionsArr = [];
       let currentSection = null;
 
       for (const line of lines) {
@@ -327,7 +300,7 @@ async function generateRecipe() {
           continue;
         }
         if (lower.startsWith("suggestion")) {
-          suggestion = line.replace(/^suggestion[:\-]?\s*/i, "").trim();
+          suggestionsArr.push(line.replace(/^suggestion[:\-]?\s*/i, "").trim());
           continue;
         }
 
@@ -336,20 +309,20 @@ async function generateRecipe() {
           if (clean) ingredientsArr.push(clean);
         } else if (currentSection === "instructions" && line) {
           const clean = line.replace(/^(\d+[\.\)]\s*)/, "").trim();
-          if (clean) instructionsArr.push(clean);
+          if (clean && !/^suggestion/i.test(clean)) instructionsArr.push(clean);
         } else if (currentSection === "nutrition" && line) {
           const clean = line.replace(/^[-•\s]+/, "").trim();
           if (clean) nutritionArr.push(clean);
         }
       }
 
-      window.generatedRecipes.push({ title, ingredientsArr, instructionsArr, nutritionArr, suggestion });
-
       fullHTML += `
-        <div class="recipe-card" id="recipe-${idx}">
-          <h2>${title}</h2>
-          ${description ? `<p class="recipe-desc">${description}</p>` : ""}
-          ${prepInfo ? `<p class="prep-info">⏱ ${prepInfo}</p>` : ""}
+        <div class="recipe-card">
+          <div class="recipe-header">
+            <h2>${title}</h2>
+            ${description ? `<p class="recipe-desc">${description}</p>` : ""}
+            ${prepInfo ? `<div class="prep-info"><span>${prepInfo}</span></div>` : ""}
+          </div>
 
           <div class="recipe-grid">
             <div class="recipe-col ingredients">
@@ -358,48 +331,48 @@ async function generateRecipe() {
             </div>
             <div class="recipe-col instructions">
               <h3>👩‍🍳 Instructions</h3>
-              <ol>${instructionsArr.map(step => `<li>${step}</li>`).join("")}</ol>
+              <ol>${instructionsArr.map(s => `<li>${s}</li>`).join("")}</ol>
             </div>
           </div>
 
           ${
             nutritionArr.length
-              ? `
-                <div class="nutrition-section">
-                  <h4>Nutrition Facts (per serving)</h4>
-                  <div class="nutrition-grid">
-                    ${nutritionArr
-                      .map((n) => {
-                        const [label, value] = n.split(":").map((x) => x.trim());
-                        return `
-                          <div class="nutrition-item">
-                            <span class="nutrition-label">${label || ""}</span>
-                            <strong class="nutrition-value">${value || ""}</strong>
-                          </div>`;
-                      })
-                      .join("")}
-                  </div>
-                </div>`
+              ? (() => {
+                  const nutritionHTML = nutritionArr
+                    .map(n => {
+                      const [label, value] = n.split(":").map(s => s.trim());
+                      return `
+                        <div class="nutrition-item">
+                          <span class="nutrition-label">${label || ""}</span>
+                          <span class="nutrition-value">${value || ""}</span>
+                        </div>
+                      `;
+                    })
+                    .join("");
+                  return `
+                    <div class="nutrition-section">
+                      <h4>Nutrition Facts (per serving)</h4>
+                      <div class="nutrition-grid">
+                        ${nutritionHTML}
+                      </div>
+                    </div>
+                  `;
+                })()
               : ""
           }
 
           ${
-            suggestion
+            suggestionsArr.length
               ? `<div class="suggestion-box">
-                  <strong>💡 Suggestion:</strong> ${suggestion}
-                  <button class="suggestion-btn" onclick="addSuggestionToGrocery('${suggestion.replace(/'/g, "\\'")}')">
+                  <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}  
+                  <button class="suggestion-btn"
+                    onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
                     ➕ Add Ingredients to Grocery
                   </button>
                 </div>`
               : ""
-          }
-
-          <div class="save-section">
-            <button class="save-btn" onclick="saveRecipeFromCard(${idx}, '${title.replace(/'/g, "\\'")}')">
-              💾 Save Recipe
-            </button>
-          </div>
-        </div>`;
+          }          
+      `;
     });
 
     output.innerHTML = fullHTML;
@@ -409,62 +382,6 @@ async function generateRecipe() {
     output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
   }
 }
-
-
-
-// helper for generate recipe
-async function saveRecipeFromCard(index, title) {
-  const recipe = window.generatedRecipes[index];
-  if (!recipe) {
-    alert("❌ No recipe data found.");
-    return;
-  }
-function addSuggestionToGrocery(suggestion) {
-  alert("🛒 Added to grocery list: " + suggestion);
-  // Later, you can extend this to actually save to DynamoDB or localStorage.
-}
-
-
-  // ✅ Get Cognito token from localStorage
-  const token = localStorage.getItem("idToken");
-  if (!token) {
-    alert("⚠️ Please sign in before saving recipes.");
-    return;
-  }
-
-  const recipeData = {
-    title: recipe.title,
-    ingredients: recipe.ingredients,
-    instructions: recipe.instructions,
-    nutrition: recipe.nutrition,
-    suggestion: recipe.suggestion || "",
-  };
-
-  try {
-    const response = await fetch(API_SAVE, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`, // ✅ send JWT for user verification
-      },
-      body: JSON.stringify(recipeData),
-    });
-
-    const data = await response.json();
-    if (response.ok) {
-      alert("✅ Recipe saved successfully!");
-    } else {
-      console.error("Lambda Error:", data);
-      alert("❌ Failed to save recipe: " + data.message);
-    }
-  } catch (error) {
-    console.error("SAVE ERROR:", error);
-    alert("❌ Failed to save recipe.");
-  }
-}
-
-
-
 
 // ============================
 // MULTI-IMAGE INGREDIENT DETECTION
@@ -515,37 +432,37 @@ async function analyzeImage() {
   }
 }
 
-// // ============================
-// // SAVE RECIPE
-// // ============================
-// const API_SAVE =
-//   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
+// ============================
+// SAVE RECIPE
+// ============================
+const API_SAVE =
+  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
 
-// async function saveRecipe() {
-//   const output = document.getElementById("output");
-//   output.innerHTML = "💾 Saving recipe...";
+async function saveRecipe() {
+  const output = document.getElementById("output");
+  output.innerHTML = "💾 Saving recipe...";
 
-//   try {
-//     const recipeData = {
-//       title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
-//       ingredients: ingredientArray.map((i) => i.name),
-//       quantities: ingredientArray.map((i) => i.qty),
-//       timestamp: new Date().toISOString(),
-//     };
+  try {
+    const recipeData = {
+      title: document.querySelector("#output h3")?.innerText || "Untitled Recipe",
+      ingredients: ingredientArray.map((i) => i.name),
+      quantities: ingredientArray.map((i) => i.qty),
+      timestamp: new Date().toISOString(),
+    };
 
-//     const response = await fetch(API_SAVE, {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(recipeData),
-//     });
+    const response = await fetch(API_SAVE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(recipeData),
+    });
 
-//     const data = await response.json();
-//     output.innerHTML = `✅ ${data.message}`;
-//   } catch (e) {
-//     console.error(e);
-//     output.innerHTML = "❌ Failed to save recipe.";
-//   }
-// }
+    const data = await response.json();
+    output.innerHTML = `✅ ${data.message}`;
+  } catch (e) {
+    console.error(e);
+    output.innerHTML = "❌ Failed to save recipe.";
+  }
+}
 
 // ============================
 // GROCERY SYSTEM (FIXES ADDED)
@@ -662,4 +579,3 @@ document.getElementById("generateBtn").addEventListener("click", generateRecipe)
 document.getElementById("saveBtn").addEventListener("click", saveRecipe);
 
 initAuth();
-
