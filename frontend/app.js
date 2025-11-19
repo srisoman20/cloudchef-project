@@ -136,7 +136,6 @@ async function initAuth() {
   }
 }
 
-initAuth();
 
 
 // ============================
@@ -536,4 +535,6 @@ async function removeGroceryItem(itemName) {
 document.getElementById("detectBtn").addEventListener("click", analyzeImage);
 document.getElementById("generateBtn").addEventListener("click", generateRecipe);
 document.getElementById("saveBtn").addEventListener("click", saveRecipe);
+
+initAuth();
 
