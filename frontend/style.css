@@ -497,3 +497,15 @@ nav {
 .save-recipe-btn:hover {
   background: #e86a33;
 }
+
+.saved-recipe-card {
+  margin-top: 20px;
+}
+
+.delete-btn {
+  background: #d9534f !important;
+}
+
+.delete-btn:hover {
+  background: #c9302c !important;
+}

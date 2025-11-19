@@ -168,6 +168,7 @@ function showPage(page) {
   } else if (page === "saved") {
     savedPage.classList.remove("hidden");
     document.getElementById("nav-saved").classList.add("active");
+    loadSavedRecipes();
   } else if (page === "grocery") {
     groceryPage.classList.remove("hidden");
     document.getElementById("nav-grocery").classList.add("active");
@@ -460,6 +461,119 @@ async function saveGeneratedRecipe(index) {
     alert("❌ Error saving recipe.");
   }
 }
+
+// ==================================
+// SAVED RECIPES API ENDPOINTS + CODE
+// ==================================
+const API_GET_SAVED =
+  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/getRecipes";
+
+const API_DELETE_SAVED =
+  "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/deleteRecipe";
+
+async function loadSavedRecipes() {
+  if (!currentUsername) {
+    console.warn("User not logged in");
+    return;
+  }
+
+  const container = document.getElementById("savedPage");
+  const emptyMsg = container.querySelector(".empty-msg");
+
+  // Clear old recipes
+  container.querySelectorAll(".saved-recipe-card").forEach(e => e.remove());
+
+  try {
+    const res = await fetch(`${API_GET_SAVED}?username=${currentUsername}`);
+    const data = await res.json();
+
+    if (!data.items || data.items.length === 0) {
+      emptyMsg.style.display = "block";
+      return;
+    }
+
+    emptyMsg.style.display = "none";
+
+    data.items.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "saved-recipe-card";
+      card.innerHTML = `
+        <div class="recipe-card">
+          <div class="recipe-header">
+            <h2>${item.title}</h2>
+            ${item.description ? `<p>${item.description}</p>` : ""}
+            ${item.prepInfo ? `<p><strong>${item.prepInfo}</strong></p>` : ""}
+          </div>
+
+          <div class="recipe-grid">
+            <div class="recipe-col ingredients">
+              <h3>🧂 Ingredients</h3>
+              <ul>${item.ingredients.map(i => `<li>${i}</li>`).join("")}</ul>
+            </div>
+
+            <div class="recipe-col instructions">
+              <h3>👩‍🍳 Instructions</h3>
+              <ol>${item.instructions.map(s => `<li>${s}</li>`).join("")}</ol>
+            </div>
+          </div>
+
+          ${
+            item.nutrition?.length
+              ? `
+                <div class="nutrition-section">
+                  <h4>Nutrition</h4>
+                  <div class="nutrition-grid">
+                    ${item.nutrition
+                      .map(n => `<div class="nutrition-item">${n}</div>`)
+                      .join("")}
+                  </div>
+                </div>`
+              : ""
+          }
+
+          ${
+            item.suggestions?.length
+              ? `<div class="suggestion-box"><strong>Suggestion:</strong> ${item.suggestions.join(
+                  " "
+                )}</div>`
+              : ""
+          }
+
+          <button class="save-recipe-btn delete-btn"
+            onclick="deleteSavedRecipe('${item.userId}', '${item.recipeID}')">
+            ❌ Delete Recipe
+          </button>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("LOAD ERROR", err);
+  }
+}
+
+async function deleteSavedRecipe(userId, recipeID) {
+  try {
+    const res = await fetch(API_DELETE_SAVED, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, recipeID })
+    });
+
+    if (!res.ok) {
+      alert("❌ Failed to delete recipe");
+      return;
+    }
+
+    alert("🗑️ Recipe deleted");
+    loadSavedRecipes();
+  } catch (err) {
+    console.error("DELETE ERROR:", err);
+  }
+}
+
+
 
 
 // ============================
