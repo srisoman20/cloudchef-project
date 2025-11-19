@@ -14,8 +14,6 @@ const welcomeMessage = document.getElementById("welcomeMessage");
 
 let user = null;
 let currentUsername = null;
-let accessToken = null;
-
 
 // LOGIN BUTTON
 loginBtn.onclick = () => {
@@ -43,11 +41,10 @@ function getQueryParam(n) {
 
 const code = getQueryParam("code");
 
-// -------------------------------
-// EXCHANGE AUTH CODE FOR TOKENS
-// -------------------------------
+// Exchange auth code for tokens
 async function exchangeCodeForTokens(code) {
   const url = `${COGNITO_DOMAIN}/oauth2/token`;
+
   const creds = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
 
   const body = new URLSearchParams({
@@ -73,77 +70,77 @@ async function exchangeCodeForTokens(code) {
   return res.json();
 }
 
-// -------------------------------
-// PARSE JWT SAFELY
-// -------------------------------
+
+// Parse JWT safely
 function parseJwt(token) {
-  if (!token) return null;
+  if (!token) return null; // 🔥 FIXED
   try {
     return JSON.parse(atob(token.split(".")[1]));
   } catch (e) {
-    console.error("JWT parse error:", e);
+    console.error("JWT parse error:", e, token);
     return null;
   }
 }
 
-// -------------------------------
-// HANDLE TOKEN EXCHANGE (FIRST LOGIN)
-// -------------------------------
-async function handleTokenExchange() {
-  if (!code) return;
-
-  const tokenJson = await exchangeCodeForTokens(code);
-  if (!tokenJson) return;
-
-  const idToken = tokenJson.id_token;
-  localStorage.setItem("idToken", idToken);
-
-  const payload = parseJwt(idToken);
-  currentUsername =
-    payload["cognito:username"] ||
-    payload.email ||
-    payload.sub;
-
-  localStorage.setItem("username", currentUsername);
-
-  user = { username: currentUsername };
-
-  welcomeMessage.textContent = `Hello, ${currentUsername}!`;
-  loginBtn.style.display = "none";
-  logoutBtn.style.display = "inline-block";
-
-  // Clean URL
-  const cleanURL = window.location.origin + window.location.pathname;
-  window.history.replaceState({}, "", cleanURL);
-}
-
-// -------------------------------
-// INIT AUTH ON PAGE LOAD
-// -------------------------------
+// INIT AUTH
 async function initAuth() {
-  // Case 1: URL contains ?code=XXXX (fresh login)
   if (code) {
-    await handleTokenExchange();
-    loadGroceryList();
-    return;
-  }
+    const tokenData = await exchangeCodeForTokens(code);
+  
+    if (!tokenData || !tokenData.id_token) {
+      console.error("❌ No id_token returned.");
+      return;
+    }
+  
+    const idToken = tokenData.id_token;
+    const payload = parseJwt(idToken);
+  
+    if (!payload) {
+      console.error("❌ JWT payload empty.");
+      return;
+    }
 
-  // Case 2: Returning user (load from localStorage)
-  const stored = localStorage.getItem("username");
-  const storedToken = localStorage.getItem("idToken");
+    const username =
+      payload["cognito:username"] ||
+      payload.username ||
+      payload.email ||
+      payload.sub;
+      
+      console.log("USERNAME FROM COGNITO:", username);
 
-  if (stored && storedToken) {
-    currentUsername = stored;
-    user = { username: stored };
+      currentUsername = username;   // ⭐ FIX: now available everywhere
+      localStorage.setItem("username", username);
+      localStorage.setItem("idToken", idToken);
+      
+      user = { username };
+      
 
-    welcomeMessage.textContent = `Hello, ${stored}!`;
+    welcomeMessage.textContent = `Welcome!`;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
 
+    // load groceries immediately
     loadGroceryList();
-  }
+
+    // Clean URL
+    const cleanURL = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, "", cleanURL);
+
+  } else {
+    const stored = localStorage.getItem("username");
+    if (stored) {
+      user = { username: stored };
+      currentUsername = stored;   // ⭐⭐ Fixes the entire problem!
+      
+      welcomeMessage.textContent = `Welcome!`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+
+      loadGroceryList();
+    }
 }
 
+}
 
 
 
@@ -170,14 +167,8 @@ function showPage(page) {
     document.getElementById("nav-generate").classList.add("active");
   } else if (page === "saved") {
     savedPage.classList.remove("hidden");
-    document.getElementById("nav-saved").onclick = () => {
-      if (!accessToken) {
-        alert("Please sign in to view your saved recipes.");
-        return;
-      }
-      showPage("savedPage");
-      loadSavedRecipes();
-    };
+    document.getElementById("nav-saved").classList.add("active");
+    loadSavedRecipes();
   } else if (page === "grocery") {
     groceryPage.classList.remove("hidden");
     document.getElementById("nav-grocery").classList.add("active");
@@ -444,12 +435,6 @@ async function saveGeneratedRecipe(index) {
   }
 
   const recipe = generatedRecipes[index];
-  const idToken = localStorage.getItem("idToken");
-
-  if (!idToken) {
-    alert("❌ Missing login token — please sign in again.");
-    return;
-  }
 
   const payload = {
     username: currentUsername,
@@ -460,19 +445,13 @@ async function saveGeneratedRecipe(index) {
   try {
     const res = await fetch(API_SAVE_RECIPE, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": idToken       // ⭐⭐ THE CRITICAL FIX
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    const data = await res.text();
-    console.log("SAVE RESPONSE:", data);
-
     if (!res.ok) {
-      console.error("SAVE ERROR:", data);
-      alert("❌ Failed to save recipe");
+      console.error(await res.text());
+      alert("❌ Failed to save recipe.");
       return;
     }
 
@@ -482,10 +461,6 @@ async function saveGeneratedRecipe(index) {
     alert("❌ Error saving recipe.");
   }
 }
-
-
-
-
 
 // ==================================
 // SAVED RECIPES API ENDPOINTS + CODE
@@ -497,70 +472,108 @@ const API_DELETE_SAVED =
   "https://q98mz40wlg.execute-api.us-west-1.amazonaws.com/Prod/deleteRecipe";
 
 async function loadSavedRecipes() {
-  if (!accessToken) {
-    console.log("Blocked: no token");
+  if (!currentUsername) {
+    console.warn("User not logged in");
     return;
   }
 
-  const url = `${apiBase}/getRecipes`;
+  const container = document.getElementById("savedPage");
+  const emptyMsg = container.querySelector(".empty-msg");
 
-  const res = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${accessToken}`
+  // Clear old recipes
+  container.querySelectorAll(".saved-recipe-card").forEach(e => e.remove());
+
+  try {
+    const res = await fetch(`${API_GET_SAVED}?username=${currentUsername}`);
+    const data = await res.json();
+
+    if (!data.items || data.items.length === 0) {
+      emptyMsg.style.display = "block";
+      return;
     }
-  });
 
-  const data = await res.json();
+    emptyMsg.style.display = "none";
 
-  const savedPage = document.getElementById("savedPage");
-  savedPage.innerHTML = `<h2>Saved Recipes</h2>`;
+    data.items.forEach(item => {
+      const card = document.createElement("div");
+      card.className = "saved-recipe-card";
+      card.innerHTML = `
+        <div class="recipe-card">
+          <div class="recipe-header">
+            <h2>${item.title}</h2>
+            ${item.description ? `<p>${item.description}</p>` : ""}
+            ${item.prepInfo ? `<p><strong>${item.prepInfo}</strong></p>` : ""}
+          </div>
 
-  if (!data.items || data.items.length === 0) {
-    savedPage.innerHTML += `<p class="empty-msg">No saved recipes yet</p>`;
-    return;
+          <div class="recipe-grid">
+            <div class="recipe-col ingredients">
+              <h3>🧂 Ingredients</h3>
+              <ul>${item.ingredients.map(i => `<li>${i}</li>`).join("")}</ul>
+            </div>
+
+            <div class="recipe-col instructions">
+              <h3>👩‍🍳 Instructions</h3>
+              <ol>${item.instructions.map(s => `<li>${s}</li>`).join("")}</ol>
+            </div>
+          </div>
+
+          ${
+            item.nutrition?.length
+              ? `
+                <div class="nutrition-section">
+                  <h4>Nutrition</h4>
+                  <div class="nutrition-grid">
+                    ${item.nutrition
+                      .map(n => `<div class="nutrition-item">${n}</div>`)
+                      .join("")}
+                  </div>
+                </div>`
+              : ""
+          }
+
+          ${
+            item.suggestions?.length
+              ? `<div class="suggestion-box"><strong>Suggestion:</strong> ${item.suggestions.join(
+                  " "
+                )}</div>`
+              : ""
+          }
+
+          <button class="save-recipe-btn delete-btn"
+            onclick="deleteSavedRecipe('${item.userId}', '${item.recipeID}')">
+            ❌ Delete Recipe
+          </button>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error("LOAD ERROR", err);
   }
-
-  data.items.forEach(item => {
-    const card = document.createElement("div");
-    card.className = "recipe-card saved-recipe-card";
-
-    card.innerHTML = `
-      <h2>${item.title}</h2>
-      <p>${item.description}</p>
-      <button class="save-recipe-btn delete-btn" onclick="deleteRecipe('${item.recipeID}')">Delete</button>
-    `;
-
-    savedPage.appendChild(card);
-  });
 }
-
 
 async function deleteSavedRecipe(userId, recipeID) {
   try {
     const res = await fetch(API_DELETE_SAVED, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": idToken   // ⭐ Required for Cognito Authorizer
-      },
-      body: JSON.stringify({
-        recipeID: recipeID   // Only send recipeID now
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, recipeID })
     });
 
     if (!res.ok) {
-      console.error(await res.text());
       alert("❌ Failed to delete recipe");
       return;
     }
 
     alert("🗑️ Recipe deleted");
-    loadSavedRecipes(); // Refresh UI
+    loadSavedRecipes();
   } catch (err) {
     console.error("DELETE ERROR:", err);
   }
 }
+
+
 
 
 // ============================
