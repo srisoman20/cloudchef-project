@@ -110,6 +110,8 @@ async function initAuth() {
     welcomeMessage.textContent = `Welcome!`;
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
+    const storedUserId = localStorage.getItem("userId");
+
 
     loadGroceryList();
 
@@ -118,14 +120,19 @@ async function initAuth() {
 
   } else {
     const stored = localStorage.getItem("username");
+    const storedUserId = localStorage.getItem("userId");
+  
     if (stored) {
       user = { username: stored };
       currentUsername = stored;
-
+  
+      // 🔥 FIX: Restore userId on refresh
+      currentUserId = storedUserId;
+  
       welcomeMessage.textContent = `Welcome!`;
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
-
+  
       loadGroceryList();
     }
   }
