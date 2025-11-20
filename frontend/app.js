@@ -117,48 +117,102 @@ const API_NUTRITION =
   "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/CloudChefNutritionAPI";
   
 
-async function generateNutritionRecipes() {
-  const calories = document.getElementById("caloriesGoal").value;
-  const protein = document.getElementById("proteinGoal").value;
-  const carbs = document.getElementById("carbsGoal").value;
-  const fat = document.getElementById("fatGoal").value;
-
-  const out = document.getElementById("nutritionOutput");
-  out.innerHTML = "🥗 Finding recipes that match your goals...";
-
-  const res = await fetch(API_NUTRITION, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      calories,
-      protein,
-      carbs,
-      fat
-    })
-  });
-
-  const data = await res.json();
-
-  if (!data.recipes) {
-    out.innerHTML = "⚠️ No recipes found.";
-    return;
+  async function generateNutritionRecipes() {
+    const calories = document.getElementById("caloriesGoal").value;
+    const protein = document.getElementById("proteinGoal").value;
+    const carbs = document.getElementById("carbsGoal").value;
+    const fat = document.getElementById("fatGoal").value;
+  
+    const out = document.getElementById("nutritionOutput");
+    out.innerHTML = "🥗 Finding recipes that match your goals...";
+  
+    const res = await fetch(API_NUTRITION, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        calories,
+        protein,
+        carbs,
+        fat
+      })
+    });
+  
+    const data = await res.json();
+  
+    if (!data.recipes) {
+      out.innerHTML = "⚠️ No recipes found.";
+      return;
+    }
+  
+    out.innerHTML = data.recipes
+      .map((r, index) => {
+        return `
+        <div class="recipe-card">
+          
+          <!-- HEADER -->
+          <div class="recipe-header">
+            <h2>${r.title}</h2>
+            ${r.description ? `<p class="recipe-desc">${r.description}</p>` : ""}
+          </div>
+  
+          <!-- GRID (shows macros like instructions/ingredients layout) -->
+          <div class="recipe-grid">
+            <div class="recipe-col ingredients">
+              <h3>🧂 Ingredients</h3>
+              <ul>
+                ${r.ingredients && r.ingredients.length 
+                  ? r.ingredients.map(i => `<li>${i}</li>`).join("")
+                  : `<li>See description above</li>`}
+              </ul>
+            </div>
+  
+            <div class="recipe-col instructions">
+              <h3>👩‍🍳 Instructions</h3>
+              <ol>
+                ${r.instructions && r.instructions.length
+                  ? r.instructions.map(step => `<li>${step}</li>`).join("")
+                  : `<li>Combine ingredients and enjoy!</li>`}
+              </ol>
+            </div>
+          </div>
+  
+          <!-- NUTRITION GRID -->
+          <div class="nutrition-section">
+            <h4>Nutrition Facts (per serving)</h4>
+            <div class="nutrition-grid">
+              <div class="nutrition-item">
+                <span class="nutrition-label">Calories</span>
+                <span class="nutrition-value">${r.calories}</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="nutrition-label">Protein</span>
+                <span class="nutrition-value">${r.protein}g</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="nutrition-label">Carbs</span>
+                <span class="nutrition-value">${r.carbs}g</span>
+              </div>
+              <div class="nutrition-item">
+                <span class="nutrition-label">Fat</span>
+                <span class="nutrition-value">${r.fat}g</span>
+              </div>
+            </div>
+          </div>
+  
+          <!-- SUGGESTION -->
+          <div class="suggestion-box">
+            <strong>💡 Suggestion:</strong> Add your favorite herbs, cheese, or vegetables for extra flavor.
+            <button class="suggestion-btn" onclick="addIngredientsToGrocery(['${r.title}'])">
+              ➕ Add Ingredients to Grocery
+            </button>
+          </div>
+  
+        </div>
+        `;
+      })
+      .join("");
   }
-
-  // display results
-  out.innerHTML = data.recipes
-    .map(r => `
-      <div class="recipe-card">
-        <h3>${r.title}</h3>
-        <p>${r.description}</p>
-        <p><strong>Calories:</strong> ${r.calories}</p>
-        <p><strong>Protein:</strong> ${r.protein}g</p>
-        <p><strong>Carbs:</strong> ${r.carbs}g</p>
-        <p><strong>Fat:</strong> ${r.fat}g</p>
-      </div>
-    `)
-    .join("");
-}
-
+  
 
 
 // INIT AUTH
