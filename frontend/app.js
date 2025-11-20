@@ -196,6 +196,37 @@ function renderIngredients() {
     )
     .join("");
 }
+async function getRecommendations() {
+  const token = localStorage.getItem("idToken");
+  const userId = localStorage.getItem("username");
+
+  const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/recommendations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify({ userId })
+  });
+
+  const data = await res.json();
+  return data.recommended;
+}
+async function showRecommendations() {
+  const recs = await getRecommendations();
+
+  const container = document.getElementById("recommendations");
+
+  container.innerHTML = recs.map(r => `
+    <div class="recipe-card">
+      <h3>${r.title}</h3>
+      <p>${r.description}</p>
+      <small>Similarity: ${r.similarity.toFixed(2)}</small>
+    </div>
+  `).join("");
+}
+showRecommendations();
+
 
 // ============================
 // UPDATED GENERATE RECIPE (with Save Buttons)
