@@ -110,6 +110,55 @@ function hideLoadingMessage() {
   if (loader) loader.remove();
 }
 
+// ============================
+// NUTRITION-BASED RECIPE GENERATOR
+// ============================
+const API_NUTRITION =
+  "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/CloudChefNutritionAPI";
+  
+
+async function generateNutritionRecipes() {
+  const calories = document.getElementById("caloriesGoal").value;
+  const protein = document.getElementById("proteinGoal").value;
+  const carbs = document.getElementById("carbsGoal").value;
+  const fat = document.getElementById("fatGoal").value;
+
+  const out = document.getElementById("nutritionOutput");
+  out.innerHTML = "🥗 Finding recipes that match your goals...";
+
+  const res = await fetch(API_NUTRITION, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      calories,
+      protein,
+      carbs,
+      fat
+    })
+  });
+
+  const data = await res.json();
+
+  if (!data.recipes) {
+    out.innerHTML = "⚠️ No recipes found.";
+    return;
+  }
+
+  // display results
+  out.innerHTML = data.recipes
+    .map(r => `
+      <div class="recipe-card">
+        <h3>${r.title}</h3>
+        <p>${r.description}</p>
+        <p><strong>Calories:</strong> ${r.calories}</p>
+        <p><strong>Protein:</strong> ${r.protein}g</p>
+        <p><strong>Carbs:</strong> ${r.carbs}g</p>
+        <p><strong>Fat:</strong> ${r.fat}g</p>
+      </div>
+    `)
+    .join("");
+}
+
 
 
 // INIT AUTH
@@ -197,18 +246,19 @@ async function initAuth() {
 const mainPage = document.getElementById("mainPage");
 const savedPage = document.getElementById("savedPage");
 const groceryPage = document.getElementById("groceryPage");
+const nutritionPage = document.getElementById("nutritionPage");
+
 
 document.getElementById("nav-generate").onclick = () => showPage("main");
 document.getElementById("nav-saved").onclick = () => showPage("saved");
 document.getElementById("nav-grocery").onclick = () => showPage("grocery");
-document.getElementById("nav-recommended").onclick = () => showPage("recommended");
+document.getElementById("nav-nutrition").onclick = () => showPage("nutrition");
 
 
 function showPage(page) {
   mainPage.classList.add("hidden");
   savedPage.classList.add("hidden");
   groceryPage.classList.add("hidden");
-  recommendedPage.classList.add("hidden");
 
 
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.classList.remove("active"));
@@ -224,11 +274,11 @@ function showPage(page) {
     groceryPage.classList.remove("hidden");
     document.getElementById("nav-grocery").classList.add("active");
   }
-  else if (page === "recommended") {
-    recommendedPage.classList.remove("hidden");
-    document.getElementById("nav-recommended").classList.add("active");
-    showRecommendations(); // load recs when the page opens
+  else if (page === "nutrition") {
+    nutritionPage.classList.remove("hidden");
+    document.getElementById("nav-nutrition").classList.add("active");
   }
+  
 }
 
 // ============================
@@ -267,40 +317,8 @@ function renderIngredients() {
     )
     .join("");
 }
-async function getRecommendations() {
-  const token = localStorage.getItem("idToken");
-  const userId = localStorage.getItem("userId");
 
-  const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/recommendations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": token
-    },
-    body: JSON.stringify({ userId })
-  });
 
-  const data = await res.json();
-  return data.recommended;
-}
-async function showRecommendations() {
-  const recs = await getRecommendations();
-  const container = document.getElementById("recommendationList");
-
-  if (!recs || recs.length === 0) {
-    container.innerHTML = "<p>No recommendations yet.</p>";
-    return;
-  }
-
-  container.innerHTML = recs.map(r => `
-    <div class="recipe-card">
-      <h3>${r.title}</h3>
-      <p>${r.description}</p>
-      <small>Similarity: ${r.similarity.toFixed(2)}</small>
-    </div>
-  `).join("");
-}
-showRecommendations();
 
 
 // ============================
@@ -1064,5 +1082,7 @@ async function sendChatMessage() {
 document.getElementById("detectBtn").addEventListener("click", analyzeImage);
 document.getElementById("generateBtn").addEventListener("click", generateRecipe);
 // document.getElementById("saveBtn").addEventListener("click", saveRecipe);
+document.getElementById("nutritionGenerateBtn").addEventListener("click", generateNutritionRecipes);
 
 initAuth();
+

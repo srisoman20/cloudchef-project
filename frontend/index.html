@@ -16,7 +16,9 @@
       <button id="nav-generate" class="nav-btn active">Generate Recipes</button>
       <button id="nav-saved" class="nav-btn">Saved Recipes</button>
       <button id="nav-grocery" class="nav-btn">Grocery List</button>
-      <button id="nav-recommended" class="nav-btn">Recommended</button>
+
+      <!-- ⭐ NEW BUTTON FOR NUTRITION PAGE -->
+      <button id="nav-nutrition" class="nav-btn">Nutrition Recipes</button>
     </nav>
 
     <div class="auth-buttons">
@@ -51,22 +53,18 @@
 
       <!-- INLINE CHATBOX BELOW RECIPES -->
       <div id="chatbox" class="hidden">
-  
-      <div class="chatbox-header">
-        <h3>CloudChef Chat</h3>
-        <p>Type here to season the recipes to your liking…</p>
+        <div class="chatbox-header">
+          <h3>CloudChef Chat</h3>
+          <p>Type here to season the recipes to your liking…</p>
+        </div>
+
+        <div class="chatbox-messages" id="chatMessages"></div>
+
+        <div class="chatbox-input">
+          <input id="chatInput" type="text" placeholder="Ask CloudChef..." />
+          <button onclick="sendChatMessage()">Send</button>
+        </div>
       </div>
-
-      <div class="chatbox-messages" id="chatMessages"></div>
-
-      <div class="chatbox-input">
-        <input id="chatInput" type="text" placeholder="Ask CloudChef..." />
-        <button onclick="sendChatMessage()">Send</button>
-      </div>
-
-    </div>
-
-
     </div>
 
     <!-- SAVED RECIPES PAGE -->
@@ -84,11 +82,20 @@
         <button onclick="manualAddGrocery()" class="grocery-add-btn">Add</button>
       </div>
       <ul id="groceryList"></ul>
-
     </div>
-    <div id="recommendedPage" class="content-card hidden">
-      <h2>Recommended For You</h2>
-      <div id="recommendationList"></div>
+
+    <!-- ⭐ NEW NUTRITION PAGE -->
+    <div id="nutritionPage" class="content-card hidden">
+      <h2>Nutrition-Based Recipes</h2>
+
+      <input id="caloriesGoal" type="number" placeholder="Calories goal (optional)">
+      <input id="proteinGoal" type="number" placeholder="Protein (g)">
+      <input id="carbsGoal" type="number" placeholder="Carbs (g)">
+      <input id="fatGoal" type="number" placeholder="Fat (g)">
+
+      <button id="nutritionGenerateBtn" class="primary-btn">Generate Nutrition Recipes</button>
+
+      <div id="nutritionOutput" class="output-box"></div>
     </div>
 
   </div>
@@ -108,8 +115,7 @@
     </div>
   </div>
 
-
-
   <script src="app.js?v=12345"></script>
 </body>
 </html>
+
