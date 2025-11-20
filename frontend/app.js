@@ -82,12 +82,17 @@ async function initAuth() {
   
     const idToken = tokenData.idToken;
     const payload = parseJwt(idToken);
-  
+
     if (!payload) {
       console.error("❌ JWT payload empty.");
       return;
     }
 
+    // 🔥 SAVE REAL USER ID (SUB)
+    const userId = payload.sub;
+    localStorage.setItem("userId", userId);
+
+    // Display name
     const username =
       payload["cognito:username"] ||
       payload.username ||
@@ -125,6 +130,7 @@ async function initAuth() {
     }
   }
 }
+
 
 
 
@@ -207,7 +213,7 @@ function renderIngredients() {
 }
 async function getRecommendations() {
   const token = localStorage.getItem("idToken");
-  const userId = localStorage.getItem("username");
+  const userId = localStorage.getItem("userId");
 
   const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/recommendations", {
     method: "POST",
