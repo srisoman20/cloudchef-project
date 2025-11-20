@@ -48,6 +48,25 @@
       </div>
 
       <div id="output" class="output-box"></div>
+
+      <!-- INLINE CHATBOX BELOW RECIPES -->
+      <div id="chatbox" class="hidden">
+  
+      <div class="chatbox-header">
+        <h3>CloudChef Chat</h3>
+        <p>Type here to season the recipes to your liking…</p>
+      </div>
+
+      <div class="chatbox-messages" id="chatMessages"></div>
+
+      <div class="chatbox-input">
+        <input id="chatInput" type="text" placeholder="Ask CloudChef..." />
+        <button onclick="sendChatMessage()">Send</button>
+      </div>
+
+    </div>
+
+
     </div>
 
     <!-- SAVED RECIPES PAGE -->
@@ -73,6 +92,22 @@
     </div>
 
   </div>
+
+  <!-- CHATBOX -->
+  <div id="chatbox" class="chatbox hidden">
+    <div class="chatbox-header">
+      <strong>CloudChef Chat</strong>
+      <button id="chatboxClose">✖</button>
+    </div>
+
+    <div id="chatMessages" class="chatbox-messages"></div>
+
+    <div class="chatbox-input">
+      <input id="chatInput" type="text" placeholder="Ask CloudChef...">
+      <button id="chatSend">Send</button>
+    </div>
+  </div>
+
 
 
   <script src="app.js?v=12345"></script>

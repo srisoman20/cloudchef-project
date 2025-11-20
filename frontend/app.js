@@ -68,62 +68,118 @@ function parseJwt(token) {
   }
 }
 
+// ============================
+// CHATBOX MESSAGE RENDERING
+// ============================
+
+function addMessage(sender, text) {
+  const chatMessages = document.getElementById("chatMessages");
+
+  const div = document.createElement("div");
+  div.className = sender === "user" ? "chat-user" : "chat-bot";
+  div.textContent = text;
+
+  chatMessages.appendChild(div);
+
+  // Auto-scroll chatbox
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showLoadingMessage() {
+  const chatMessages = document.getElementById("chatMessages");
+
+  // If loader already exists, do not add another one
+  if (document.getElementById("aiLoader")) return;
+
+  const loader = document.createElement("div");
+  loader.id = "aiLoader";
+  loader.className = "chat-bot loader-container";
+  loader.innerHTML = `
+    CloudChef is preparing updated recipes...
+    <span class="typing-dots">
+      <span></span><span></span><span></span>
+    </span>
+  `;
+
+  chatMessages.appendChild(loader);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function hideLoadingMessage() {
+  const loader = document.getElementById("aiLoader");
+  if (loader) loader.remove();
+}
+
+
+
 // INIT AUTH
 
 
 async function initAuth() {
-  if (code) {
-    const tokenData = await exchangeCodeForTokens(code);
-  
-    if (!tokenData || !tokenData.idToken) {
-      console.error("❌ No idToken returned.");
-      return;
-    }
-  
-    const idToken = tokenData.idToken;
-    const payload = parseJwt(idToken);
-  
-    if (!payload) {
-      console.error("❌ JWT payload empty.");
-      return;
-    }
+  if (code) {
+    const tokenData = await exchangeCodeForTokens(code);
+  
+    if (!tokenData || !tokenData.idToken) {
+      console.error("❌ No idToken returned.");
+      return;
+    }
+  
+    const idToken = tokenData.idToken;
+    const payload = parseJwt(idToken);
 
-    const username =
-      payload["cognito:username"] ||
-      payload.username ||
-      payload.email ||
-      payload.sub;
+    if (!payload) {
+      console.error("❌ JWT payload empty.");
+      return;
+    }
 
-    console.log("USERNAME FROM COGNITO:", username);
+    // 🔥 SAVE REAL USER ID (SUB)
+    const userId = payload.sub;
+    localStorage.setItem("userId", userId);
 
-    currentUsername = username;
-    localStorage.setItem("username", username);
-    localStorage.setItem("idToken", idToken);
+    // Display name
+    const username =
+      payload["cognito:username"] ||
+      payload.username ||
+      payload.email ||
+      payload.sub;
 
-    user = { username };
+    console.log("USERNAME FROM COGNITO:", username);
 
-    welcomeMessage.textContent = `Welcome!`;
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
+    currentUsername = username;
+    localStorage.setItem("username", username);
+    localStorage.setItem("idToken", idToken);
 
-    loadGroceryList();
+    user = { username };
 
-    const cleanURL = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, "", cleanURL);
+    welcomeMessage.textContent = `Welcome!`;
+    loginBtn.style.display = "none";
+    logoutBtn.style.display = "inline-block";
+    const storedUserId = localStorage.getItem("userId");
 
-  } else {
-    const stored = localStorage.getItem("username");
-    if (stored) {
-      user = { username: stored };
-      currentUsername = stored;
 
-      welcomeMessage.textContent = `Welcome!`;
-      loginBtn.style.display = "none";
-      logoutBtn.style.display = "inline-block";
+    loadGroceryList();
 
-      loadGroceryList();
-    }
-  }
+    const cleanURL = window.location.origin + window.location.pathname;
+    window.history.replaceState({}, "", cleanURL);
+
+  } else {
+    const stored = localStorage.getItem("username");
+    const storedUserId = localStorage.getItem("userId");
+  
+    if (stored) {
+      user = { username: stored };
+      currentUsername = stored;
+  
+      // 🔥 FIX: Restore userId on refresh
+      currentUserId = storedUserId;
+  
+      welcomeMessage.textContent = `Welcome!`;
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "inline-block";
+  
+      loadGroceryList();
+    }
+  }
 }
 
 
@@ -206,37 +262,37 @@ function renderIngredients() {
     .join("");
 }
 async function getRecommendations() {
-  const token = localStorage.getItem("idToken");
-  const userId = localStorage.getItem("username");
+  const token = localStorage.getItem("idToken");
+  const userId = localStorage.getItem("userId");
 
-  const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/recommendations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": token
-    },
-    body: JSON.stringify({ userId })
-  });
+  const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/recommendations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": token
+    },
+    body: JSON.stringify({ userId })
+  });
 
-  const data = await res.json();
-  return data.recommended;
+  const data = await res.json();
+  return data.recommended;
 }
 async function showRecommendations() {
-  const recs = await getRecommendations();
-  const container = document.getElementById("recommendationList");
+  const recs = await getRecommendations();
+  const container = document.getElementById("recommendationList");
 
-  if (!recs || recs.length === 0) {
-    container.innerHTML = "<p>No recommendations yet.</p>";
-    return;
-  }
+  if (!recs || recs.length === 0) {
+    container.innerHTML = "<p>No recommendations yet.</p>";
+    return;
+  }
 
-  container.innerHTML = recs.map(r => `
-    <div class="recipe-card">
-      <h3>${r.title}</h3>
-      <p>${r.description}</p>
-      <small>Similarity: ${r.similarity.toFixed(2)}</small>
-    </div>
-  `).join("");
+  container.innerHTML = recs.map(r => `
+    <div class="recipe-card">
+      <h3>${r.title}</h3>
+      <p>${r.description}</p>
+      <small>Similarity: ${r.similarity.toFixed(2)}</small>
+    </div>
+  `).join("");
 }
 showRecommendations();
 
@@ -447,12 +503,193 @@ async function generateRecipe() {
     });
 
     output.innerHTML = fullHTML;
+    document.getElementById("chatbox").classList.remove("hidden");
+
 
   } catch (error) {
     console.error("AI ERROR:", error);
     output.innerHTML = `<p style="color:red;">❌ Failed to generate recipes.</p>`;
   }
+  document.getElementById("chatbox").classList.remove("hidden");
+
 }
+
+function renderRecipesFromText(recipeText) {
+  const output = document.getElementById("output");
+  output.innerHTML = "";
+  generatedRecipes = []; // reset each time
+
+  const recipeBlocks = recipeText
+    .split(/(?:^|\n)Recipe\s*\d*[:.-]?\s*/i)
+    .map(r => r.trim())
+    .filter(r => r.length > 0);
+
+  let fullHTML = "";
+
+  recipeBlocks.forEach((block, idx) => {
+    const lines = block.split("\n").map(l => l.trim()).filter(Boolean);
+
+    // --- Title ---
+    const titleLine = lines.find(
+      l =>
+        !/^description|^time|^prep|^ingredients|^instructions|^nutrition/i.test(
+          l.toLowerCase()
+        )
+    );
+    const title = titleLine || `Recipe ${idx + 1}`;
+
+    // --- Description ---
+    const description = (
+      lines.find(l => l.toLowerCase().startsWith("description")) || ""
+    )
+      .replace(/^description[:\-]?\s*/i, "")
+      .trim();
+
+    // --- Prep Info ---
+    let prepInfo = "";
+
+    const timeMatch = lines.find(l => l.toLowerCase().startsWith("time:"));
+    const servingsMatch = lines.find(l => l.toLowerCase().startsWith("servings:"));
+
+    let time = "";
+    let servings = "";
+
+    if (timeMatch) {
+      time = timeMatch.replace(/^time[:\-]?\s*/i, "").trim();
+    }
+
+    if (servingsMatch) {
+      servings = servingsMatch.replace(/^servings[:\-]?\s*/i, "").trim();
+    }
+
+    if (time && servings) {
+      prepInfo = `⏱ Time: ${time} | 🍽 Servings: ${servings}`;
+    } else if (time) {
+      prepInfo = `⏱ Time: ${time}`;
+    } else if (servings) {
+      prepInfo = `🍽 Servings: ${servings}`;
+    }
+
+    // --- Sections ---
+    let ingredientsArr = [];
+    let instructionsArr = [];
+    let nutritionArr = [];
+    let suggestionsArr = [];
+    let currentSection = null;
+
+    for (const line of lines) {
+      const lower = line.toLowerCase();
+
+      if (lower.startsWith("ingredients")) {
+        currentSection = "ingredients";
+        continue;
+      }
+      if (lower.startsWith("instructions")) {
+        currentSection = "instructions";
+        continue;
+      }
+      if (lower.startsWith("nutrition facts")) {
+        currentSection = "nutrition";
+        continue;
+      }
+      if (lower.startsWith("suggestion")) {
+        suggestionsArr.push(line.replace(/^suggestion[:\-]?\s*/i, "").trim());
+        continue;
+      }
+
+      // Fill arrays based on section
+      if (currentSection === "ingredients" && line) {
+        const clean = line.replace(/^[-•\s]+/, "").trim();
+        if (clean) ingredientsArr.push(clean);
+      } else if (currentSection === "instructions" && line) {
+        const clean = line.replace(/^(\d+[\.\)]\s*)/, "").trim();
+        if (clean && !/^suggestion/i.test(clean)) instructionsArr.push(clean);
+      } else if (currentSection === "nutrition" && line) {
+        const clean = line.replace(/^[-•\s]+/, "").trim();
+        if (clean) nutritionArr.push(clean);
+      }
+    }
+
+    // --- Build Recipe Object for Saving ---
+    const recipeObject = {
+      title,
+      description,
+      ingredients: ingredientsArr,
+      instructions: instructionsArr,
+      nutrition: nutritionArr,
+      suggestions: suggestionsArr,
+      prepInfo
+    };
+
+    generatedRecipes.push(recipeObject);
+    const recipeIndex = generatedRecipes.length - 1;
+
+    // --- Build HTML (EXACT MATCH to your generateRecipe version) ---
+    fullHTML += `
+      <div class="recipe-card">
+        <div class="recipe-header">
+          <h2>${title}</h2>
+          ${description ? `<p class="recipe-desc">${description}</p>` : ""}
+          ${prepInfo ? `<div class="prep-info"><span>${prepInfo}</span></div>` : ""}
+        </div>
+
+        <div class="recipe-grid">
+          <div class="recipe-col ingredients">
+            <h3>🧂 Ingredients</h3>
+            <ul>${ingredientsArr.map(i => `<li>${i}</li>`).join("")}</ul>
+          </div>
+
+          <div class="recipe-col instructions">
+            <h3>👩‍🍳 Instructions</h3>
+            <ol>${instructionsArr.map(s => `<li>${s}</li>`).join("")}</ol>
+          </div>
+        </div>
+
+        ${
+          nutritionArr.length
+            ? `
+              <div class="nutrition-section">
+                <h4>Nutrition Facts (per serving)</h4>
+                <div class="nutrition-grid">
+                  ${nutritionArr
+                    .map(n => {
+                      const [label, value] = n.split(":").map(s => s.trim());
+                      return `
+                        <div class="nutrition-item">
+                          <span class="nutrition-label">${label || ""}</span>
+                          <span class="nutrition-value">${value || ""}</span>
+                        </div>
+                      `;
+                    })
+                    .join("")}
+                </div>
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          suggestionsArr.length
+            ? `<div class="suggestion-box">
+                <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
+                <button class="suggestion-btn"
+                  onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
+                  ➕ Add Ingredients to Grocery
+                </button>
+              </div>`
+            : ""
+        }
+
+        <button class="save-recipe-btn" onclick="saveGeneratedRecipe(${recipeIndex})">
+          ⭐ Save Recipe
+        </button>
+      </div>
+    `;
+  });
+
+  output.innerHTML = fullHTML;
+}
+
 
 const API_SAVE_RECIPE =
   "https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/saveRecipe";
@@ -758,6 +995,60 @@ async function removeGroceryItem(itemName) {
 
   loadGroceryList();
 }
+
+// ============================
+// CLOUDCHEF CHATBOX
+// ============================
+
+// Your new AWS API endpoint (after you create Lambda)
+const API_CHAT = "https://1x5z0afqn2.execute-api.us-west-2.amazonaws.com/Prod/chatbox";
+
+// Chatbox elements
+const chatbox = document.getElementById("chatbox");
+const chatMessages = document.getElementById("chatMessages");
+const chatInput = document.getElementById("chatInput");
+
+// Close chatbox
+document.getElementById("chatboxClose").onclick = () => {
+  chatbox.classList.add("hidden");
+};
+
+// Send user message
+document.getElementById("chatSend").onclick = sendChatMessage;
+chatInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") sendChatMessage();
+});
+
+async function sendChatMessage() {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  addMessage("user", msg);
+  chatInput.value = "";
+
+  // show loader BEFORE fetch
+  showLoadingMessage();
+
+  const payload = {
+    userPrompt: msg,
+    recipes: generatedRecipes
+  };
+
+  const res = await fetch(API_CHAT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  hideLoadingMessage();
+  addMessage("bot", "Updated recipes generated!");
+
+  renderRecipesFromText(data.reply);
+}
+
+
 
 
 
