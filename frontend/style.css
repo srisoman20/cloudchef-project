@@ -1,83 +1,6 @@
-
-.suggestion-btn {
-  margin-left: 20px;
-  padding: 6px 12px;
-  background-color: #ff7b47;
-  border: none;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.suggestion-btn:hover {
-  background-color: #ff5722;
-}
-
-
-/* Grocery List Styling */
-.grocery-input {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  margin: 20px 0 30px;
-}
-
-.grocery-input input {
-  flex: 0 0 260px;
-  padding: 12px 16px;
-  border: 2px solid #ffd9c7;
-  border-radius: 12px;
-  font-size: 15px;
-  background: #fffaf4;
-  transition: 0.2s ease-in-out;
-}
-
-.grocery-input input:focus {
-  border-color: #ff7449;
-  outline: none;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(255, 116, 73, 0.2);
-}
-
-/* Add Button */
-.grocery-add-btn {
-  padding: 12px 24px;
-  background: #ff7449;
-  border: none;
-  color: white;
-  border-radius: 12px;
-  font-size: 16px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s ease-in-out;
-}
-
-.grocery-add-btn:hover {
-  background: #e8672e;
-  transform: translateY(-2px);
-}
-
-.grocery-add-btn:active {
-  transform: scale(0.97);
-}
-
-/* Grocery list items */
-#groceryList li {
-  background: #fff7f0;
-  border-radius: 10px;
-  padding: 12px 16px;
-  margin: 8px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 16px;
-}
-
-/* ===========================
-   RESET + NAVBAR FIX
-   =========================== */
+/* =========================================
+   GLOBAL RESET + BASE
+========================================= */
 body {
   margin: 0;
   background: #fff7f0;
@@ -85,88 +8,32 @@ body {
   color: #333;
 }
 
+.hidden {
+  display: none;
+}
+
+/* =========================================
+   NAVBAR
+========================================= */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: white;
-  padding: 1rem 2rem;
+  padding: 18px 40px;
   border-bottom: 1px solid #eee;
   position: sticky;
   top: 0;
   z-index: 10;
-}
-
-.logo {
-  color: #ff7a42;
-  font-weight: 700;
-  font-size: 1.5rem;
-}
-
-nav button.nav-btn {
-  background: none;
-  border: none;
-  font-size: 1rem;
-  color: #333;
-  margin: 0 0.75rem;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-/* FIX: Nav button active color */
-.nav-btn.active {
-  background: #ff7a42;
-  color: white !important;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  font-weight: 600;
-}
-
-.nav-btn:not(.active):hover {
-  color: #ff7a42;
-}
-
-
-
-.auth-buttons button {
-  background: #ff7a42;
-  color: white;
-  border: none;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-
-/* GENERAL PAGE */
-body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #fff7eb;
-  margin: 0;
-}
-
-/* NAVBAR */
-.navbar {
-  width: 100%;
-  padding: 18px 40px;
-  background: white;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  box-sizing: border-box;
 }
 
-/* LEFT LOGO */
 .logo {
   font-size: 26px;
-  font-weight: bold;
+  font-weight: 700;
   color: #ff7449;
 }
 
-/* NAV BUTTONS MIDDLE (Generate / Saved / Grocery) */
 nav {
   display: flex;
   gap: 10px;
@@ -179,6 +46,7 @@ nav {
   font-size: 15px;
   cursor: pointer;
   border-radius: 8px;
+  font-weight: 500;
 }
 
 .nav-btn.active {
@@ -186,13 +54,16 @@ nav {
   color: white;
 }
 
-/* RIGHT AUTH SECTION — FIXED */
+.nav-btn:not(.active):hover {
+  color: #ff7449;
+}
+
+/* AUTH BUTTONS */
 .auth-buttons {
   display: flex;
   align-items: center;
   gap: 12px;
-
-  white-space: nowrap;     /* prevents wrapping */
+  white-space: nowrap;
 }
 
 .auth-btn {
@@ -209,28 +80,28 @@ nav {
   background: #e86a33;
 }
 
-/* PAGE CONTAINER */
+/* =========================================
+   PAGE LAYOUT
+========================================= */
 .page-container {
-  display: flex;
-  justify-content: center;
-  padding-top: 40px;
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 40px 20px;
 }
 
-/* CONTENT CARD */
 .content-card {
   background: white;
-  width: 80%;
-  max-width: 1000px;
+  width: 100%;
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  margin-bottom: 50px;
 }
 
-.hidden {
-  display: none;
-}
-
-/* INGREDIENT INPUTS */
+/* =========================================
+   INGREDIENT INPUT SECTION
+========================================= */
 .ingredient-row {
   display: flex;
   gap: 10px;
@@ -254,7 +125,7 @@ nav {
   cursor: pointer;
 }
 
-/* INGREDIENT LIST */
+/* Ingredient list */
 #ingredientList {
   list-style: none;
   padding: 0;
@@ -271,7 +142,7 @@ nav {
   font-size: 15px;
 }
 
-/* BUTTON ROW */
+/* Buttons row */
 .button-row {
   display: flex;
   gap: 20px;
@@ -300,7 +171,7 @@ nav {
   cursor: pointer;
 }
 
-/* OUTPUT BOX */
+/* Output box */
 .output-box {
   margin-top: 30px;
   background: #fafafa;
@@ -309,54 +180,78 @@ nav {
   min-height: 140px;
 }
 
-/* EMPTY MESSAGE */
-.empty-msg {
-  text-align: center;
-  color: #999;
-  font-size: 17px;
-  padding: 40px;
+/* =========================================
+   GROCERY LIST SECTION
+========================================= */
+
+.grocery-input {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 30px;
 }
 
-.recipe-card {
+.grocery-input input {
+  flex: 0 0 260px;
+  padding: 12px 16px;
+  border: 2px solid #ffd9c7;
+  border-radius: 12px;
+  background: #fffaf4;
+}
+
+.grocery-input input:focus {
+  border-color: #ff7449;
+  outline: none;
   background: #fff;
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  margin-top: 1.5rem;
-  font-family: 'Inter', sans-serif;
-  color: #333;
+  box-shadow: 0 0 0 3px rgba(255,116,73,0.2);
 }
 
-.recipe-card h2 {
-  margin-bottom: 1rem;
-  color: #222;
+.grocery-add-btn {
+  padding: 12px 24px;
+  background: #ff7449;
+  border: none;
+  color: white;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.recipe-columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-top: 1.5rem;
+#groceryList li {
+  background: #fff7f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
 }
 
-.recipe-ingredients ul, .recipe-instructions ol {
-  padding-left: 1.5rem;
+/* =========================================
+   NUTRITION PAGE FIXED (NO SQUISHING)
+========================================= */
+.nutrition-inputs {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
 }
 
-.recipe-instructions ol li::marker {
-  color: #ff7a42;
-  font-weight: bold;
+.nutrition-inputs input {
+  flex: 1;
+  min-width: 180px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
 }
 
-.recipe-ingredients h3,
-.recipe-instructions h3 {
-  margin-bottom: 0.75rem;
-  color: #444;
+/* Results container */
+#nutritionOutput {
+  margin-top: 30px;
 }
 
-/* ===========================
-   CLEAN GRID RECIPE LAYOUT
-   =========================== */
+/* =========================================
+   RECIPE CARD STYLES
+========================================= */
 .recipe-card {
   background: #fff;
   border-radius: 20px;
@@ -367,262 +262,104 @@ nav {
   box-shadow: 0 6px 20px rgba(0,0,0,0.05);
 }
 
-.recipe-header h2 {
-  color: #ff7a42;
-  margin-bottom: 0.4rem;
-}
-
-.recipe-header .subtext {
-  color: #777;
-  margin-bottom: 1.2rem;
-  font-size: 0.9rem;
-}
-
 .recipe-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
 }
 
-.recipe-col h3 {
-  margin-bottom: 0.6rem;
-  color: #333;
-  font-weight: 600;
-}
-
 .ingredients ul {
-  list-style-type: none;
+  list-style: none;
   padding: 0;
 }
-
-.ingredients li {
-  background: #fff7f0;
-  padding: 0.5rem 0.8rem;
-  border-radius: 6px;
-  margin-bottom: 0.4rem;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
 
 .instructions ol {
   padding-left: 1.2rem;
 }
 
-.instructions li {
-  margin-bottom: 0.6rem;
-  line-height: 1.5;
-}
-
-.instructions ol li::marker {
-  color: #ff7a42;
-  font-weight: bold;
-}
-
-.suggestion-box {
-  background: #fffaf4;
-  border-left: 4px solid #ff7a42;
-  border-radius: 10px;
-  padding: 1rem 1.2rem;
-  margin-top: 1.5rem;
-  font-size: 0.95rem;
-  color: #333;
-  line-height: 1.5;
-}
-
-.suggestion-box strong {
-  color: #ff7a42;
-}
-
-/* Nutrition Facts Grid */
-.nutrition-section {
-  margin-top: 24px;
-  background-color: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-.nutrition-section h4 {
-  font-weight: 600;
-  margin-bottom: 16px;
-  color: #333;
-}
-
-.nutrition-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 16px;
-  align-items: stretch;
-}
-
-
-.nutrition-item {
-  background: #fafafa;
-  border-radius: 12px;
-  padding: 16px 24px;
-  min-width: 120px;
-  text-align: center;
-  flex: 1 1 120px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.nutrition-label {
-  display: block;
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.nutrition-value {
-  display: block;
-  font-weight: 700;
-  font-size: 18px;
-  color: #000;
-}
-
+/* Save button */
 .save-recipe-btn {
   margin-top: 20px;
   width: 100%;
   padding: 14px;
   background: #ff7449;
-  color: white;
-  border: none;
   border-radius: 12px;
+  color: white;
   font-size: 16px;
-  font-weight: 600;
   cursor: pointer;
 }
 
-.save-recipe-btn:hover {
-  background: #e86a33;
-}
-
-.saved-recipe-card {
-  margin-top: 20px;
-}
-
-.delete-btn {
-  background: #d9534f !important;
-}
-
-.delete-btn:hover {
-  background: #c9302c !important;
-}
-
-/* === INLINE CHATBOX BELOW RECIPES === */
+/* =========================================
+   CHATBOX — FIXED FLOATING VERSION
+========================================= */
 #chatbox {
-  width: 85%;
-  max-width: 900px;
-  margin: 24px auto;
-  background: #fffaf4;
-  border: 2px solid #ffb89a;
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 360px;
+  height: 480px;
+  background: white;
   border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+  border: 2px solid #ffb89a;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
+  z-index: 9999;
 }
 
 #chatbox.hidden {
   display: none;
 }
 
-/* === MESSAGE AREA === */
+.chatbox-header {
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  color: #ff7449;
+}
+
 .chatbox-messages {
+  flex: 1;
   background: #fffefc;
-  border-radius: 12px;
-  padding: 10px;
-  height: 150px;           /* Chatbox is smaller */
+  padding: 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  border-radius: 12px;
+  margin: 0 12px;
 }
 
-/* === CHAT BUBBLES === */
-.chat-user,
-.chat-bot {
-  width: fit-content;
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: 14px;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-/* User bubble (right-aligned) */
+/* BUBBLES */
 .chat-user {
   margin-left: auto;
   background: #ffe0d1;
-  color: #333;
-  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 14px;
 }
 
-/* Bot bubble (left-aligned) */
 .chat-bot {
   margin-right: auto;
   background: #fff1e7;
   color: #ff7449;
-  font-weight: 600;
-}
-
-/* Loader bubble behaves like bot bubble */
-.loader-container {
-  margin-right: auto;
-  background: #fff1e7;
-  color: #ff7449;
-  opacity: 0.9;
   padding: 10px 14px;
   border-radius: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-style: italic;
-  font-size: 14px;
-  max-width: 70%;
 }
 
-/* === TYPING DOTS ANIMATION === */
-.typing-dots {
-  display: inline-flex;
-  gap: 4px;
-}
-
-.typing-dots span {
-  width: 6px;
-  height: 6px;
-  background: #ff7449;
-  border-radius: 50%;
-  display: inline-block;
-  animation: typingBlink 1s infinite ease-in-out;
-}
-
-.typing-dots span:nth-child(1) { animation-delay: 0s; }
-.typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes typingBlink {
-  0%   { opacity: 0.2; transform: translateY(0px); }
-  50%  { opacity: 1;   transform: translateY(-2px); }
-  100% { opacity: 0.2; transform: translateY(0px); }
-}
-
-/* === INPUT BAR === */
+/* INPUT BAR */
 .chatbox-input {
-  border-top: 1px solid #ffd8c3;
-  margin-top: 12px;
-  padding-top: 12px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  padding: 12px;
+  border-top: 1px solid #ffd8c3;
 }
 
 .chatbox-input input {
   flex: 1;
   padding: 12px;
-  border: 1px solid #ffb89a;
   border-radius: 12px;
-  font-size: 15px;
+  border: 1px solid #ffb89a;
 }
 
 .chatbox-input button {
@@ -631,27 +368,7 @@ nav {
   border: none;
   border-radius: 10px;
   color: white;
-  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-}
-
-/* === CHATBOX HEADER === */
-.chatbox-header {
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-}
-
-.chatbox-header h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #ff7449;
-}
-
-.chatbox-header p {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #8b6f64;
 }
 
