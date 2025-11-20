@@ -18,6 +18,7 @@
       <button id="nav-saved" class="nav-btn">Saved Recipes</button>
       <button id="nav-grocery" class="nav-btn">Grocery List</button>
       <button id="nav-nutrition" class="nav-btn">Nutrition Recipes</button>
+      
     </nav>
 
     <div class="auth-buttons">
@@ -76,24 +77,24 @@
 
 
     <!-- NUTRITION RECIPES PAGE -->
-    <div id="nutritionPage" class="content-card hidden">
-      <h2>Nutrition-Based Recipes</h2>
+    <!-- NUTRITION RECIPES PAGE -->
+<div id="nutritionPage" class="content-card hidden">
+  <h2>Nutrition-Based Recipes</h2>
 
-      <div class="nutrition-inputs">
-        <input id="calInput" type="text" placeholder="Calories">
-        <input id="proteinInput" type="text" placeholder="Protein (g)">
-        <input id="carbInput" type="text" placeholder="Carbs (g)">
-        <input id="fatInput" type="text" placeholder="Fat (g)">
-      </div>
+  <div class="nutrition-inputs">
+    <input id="caloriesGoal" type="text" placeholder="Calories">
+    <input id="proteinGoal" type="text" placeholder="Protein (g)">
+    <input id="carbsGoal" type="text" placeholder="Carbs (g)">
+    <input id="fatGoal" type="text" placeholder="Fat (g)">
+  </div>
 
-      <button id="nutritionBtn" class="primary-btn">
-        Generate Nutrition Recipes
-      </button>
+  <button id="nutritionGenerateBtn" class="primary-btn">
+    Generate Nutrition Recipes
+  </button>
 
-      <div id="nutritionResults"></div>
-    </div>
+  <div id="nutritionOutput"></div>
+</div>
 
-  </div> <!-- END page-container -->
 
 
   <!-- SINGLE CHATBOX (REMOVED DUPLICATES) -->
