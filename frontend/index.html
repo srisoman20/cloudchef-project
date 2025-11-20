@@ -9,6 +9,7 @@
 
 <body>
 
+  <!-- NAVBAR -->
   <header class="navbar">
     <div class="logo">CloudChef</div>
 
@@ -16,8 +17,6 @@
       <button id="nav-generate" class="nav-btn active">Generate Recipes</button>
       <button id="nav-saved" class="nav-btn">Saved Recipes</button>
       <button id="nav-grocery" class="nav-btn">Grocery List</button>
-
-      <!-- ⭐ NEW BUTTON FOR NUTRITION PAGE -->
       <button id="nav-nutrition" class="nav-btn">Nutrition Recipes</button>
     </nav>
 
@@ -28,9 +27,11 @@
     </div>
   </header>
 
+
+  <!-- MAIN PAGE CONTAINER -->
   <div class="page-container">
 
-    <!-- MAIN PAGE -->
+    <!-- GENERATE PAGE -->
     <div id="mainPage" class="content-card">
       <h2>What's in your fridge?</h2>
 
@@ -50,28 +51,16 @@
       </div>
 
       <div id="output" class="output-box"></div>
-
-      <!-- INLINE CHATBOX BELOW RECIPES -->
-      <div id="chatbox" class="hidden">
-        <div class="chatbox-header">
-          <h3>CloudChef Chat</h3>
-          <p>Type here to season the recipes to your liking…</p>
-        </div>
-
-        <div class="chatbox-messages" id="chatMessages"></div>
-
-        <div class="chatbox-input">
-          <input id="chatInput" type="text" placeholder="Ask CloudChef..." />
-          <button onclick="sendChatMessage()">Send</button>
-        </div>
-      </div>
     </div>
 
-    <!-- SAVED RECIPES PAGE -->
+
+    <!-- SAVED PAGE -->
     <div id="savedPage" class="content-card hidden">
       <h2>Saved Recipes</h2>
       <p class="empty-msg">No saved recipes yet</p>
+      <div id="savedList"></div>
     </div>
+
 
     <!-- GROCERY PAGE -->
     <div id="groceryPage" class="content-card hidden">
@@ -81,26 +70,33 @@
         <input id="manualGrocery" type="text" placeholder="Add grocery item">
         <button onclick="manualAddGrocery()" class="grocery-add-btn">Add</button>
       </div>
+
       <ul id="groceryList"></ul>
     </div>
 
-    <!-- ⭐ NEW NUTRITION PAGE -->
+
+    <!-- NUTRITION RECIPES PAGE -->
     <div id="nutritionPage" class="content-card hidden">
       <h2>Nutrition-Based Recipes</h2>
 
-      <input id="caloriesGoal" type="number" placeholder="Calories goal (optional)">
-      <input id="proteinGoal" type="number" placeholder="Protein (g)">
-      <input id="carbsGoal" type="number" placeholder="Carbs (g)">
-      <input id="fatGoal" type="number" placeholder="Fat (g)">
+      <div class="nutrition-inputs">
+        <input id="calInput" type="text" placeholder="Calories">
+        <input id="proteinInput" type="text" placeholder="Protein (g)">
+        <input id="carbInput" type="text" placeholder="Carbs (g)">
+        <input id="fatInput" type="text" placeholder="Fat (g)">
+      </div>
 
-      <button id="nutritionGenerateBtn" class="primary-btn">Generate Nutrition Recipes</button>
+      <button id="nutritionBtn" class="primary-btn">
+        Generate Nutrition Recipes
+      </button>
 
-      <div id="nutritionOutput" class="output-box"></div>
+      <div id="nutritionResults"></div>
     </div>
 
-  </div>
+  </div> <!-- END page-container -->
 
-  <!-- CHATBOX -->
+
+  <!-- SINGLE CHATBOX (REMOVED DUPLICATES) -->
   <div id="chatbox" class="chatbox hidden">
     <div class="chatbox-header">
       <strong>CloudChef Chat</strong>
