@@ -91,6 +91,8 @@ async function initAuth() {
     // 🔥 SAVE REAL USER ID (SUB)
     const userId = payload.sub;
     localStorage.setItem("userId", userId);
+    localStorage.setItem("userId", payload.sub);
+
 
     // Display name
     const username =
@@ -220,7 +222,8 @@ function renderIngredients() {
 }
 async function getRecommendations() {
   const token = localStorage.getItem("idToken");
-  const userId = localStorage.getItem("userId");
+  const userId = localStorage.getItem("userId") || currentUsername;
+
 
   const res = await fetch("https://vfqmp41009.execute-api.us-west-1.amazonaws.com/Prod/recommendations", {
     method: "POST",
