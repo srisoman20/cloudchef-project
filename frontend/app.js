@@ -560,10 +560,7 @@ async function generateRecipe() {
             suggestionsArr.length
               ? `<div class="suggestion-box">
                   <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
-                  <button class="suggestion-btn"
-                    onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
-                    ➕ Add Ingredients to Grocery
-                  </button>
+                  
                 </div>`
               : ""
           }
@@ -745,10 +742,7 @@ function renderRecipesFromText(recipeText) {
           suggestionsArr.length
             ? `<div class="suggestion-box">
                 <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
-                <button class="suggestion-btn"
-                  onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
-                  ➕ Add Ingredients to Grocery
-                </button>
+                
               </div>`
             : ""
         }
@@ -1142,3 +1136,4 @@ document.getElementById("imageUpload").addEventListener("change", function () {
 
 
 initAuth();
+
