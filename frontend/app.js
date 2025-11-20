@@ -137,6 +137,13 @@ async function initAuth() {
     localStorage.setItem("userId", userId);
 
     // Display name
+    // 🔥 SAVE REAL USER ID (SUB)
+    const userId = payload.sub;
+    localStorage.setItem("userId", userId);
+    localStorage.setItem("userId", payload.sub);
+
+
+    // Display name
     const username =
       payload["cognito:username"] ||
       payload.username ||
@@ -156,6 +163,8 @@ async function initAuth() {
     logoutBtn.style.display = "inline-block";
     const storedUserId = localStorage.getItem("userId");
 
+    const storedUserId = localStorage.getItem("userId");
+
 
     loadGroceryList();
 
@@ -165,22 +174,26 @@ async function initAuth() {
   } else {
     const stored = localStorage.getItem("username");
     const storedUserId = localStorage.getItem("userId");
-  
+    
     if (stored) {
       user = { username: stored };
       currentUsername = stored;
   
       // 🔥 FIX: Restore userId on refresh
       currentUserId = storedUserId;
-  
+    
+      // 🔥 FIX: Restore userId on refresh
+      currentUserId = storedUserId;
+  
       welcomeMessage.textContent = `Welcome!`;
       loginBtn.style.display = "none";
       logoutBtn.style.display = "inline-block";
-  
+    
       loadGroceryList();
     }
   }
 }
+
 
 
 
