@@ -372,3 +372,45 @@ nav {
   cursor: pointer;
 }
 
+/* --- FIX: Nutrition Facts styling inside generated recipes --- */
+.recipe-card .nutrition-section {
+  margin-top: 20px;
+  background: #fffaf4;
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.recipe-card .nutrition-section h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #333;
+}
+
+.recipe-card .nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.recipe-card .nutrition-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 16px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.recipe-card .nutrition-label {
+  font-size: 14px;
+  color: #777;
+}
+
+.recipe-card .nutrition-value {
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: 4px;
+  color: #ff7449;
+}
+
