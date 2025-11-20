@@ -259,6 +259,8 @@ function showPage(page) {
   mainPage.classList.add("hidden");
   savedPage.classList.add("hidden");
   groceryPage.classList.add("hidden");
+  nutritionPage.classList.add("hidden");
+  
 
 
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.classList.remove("active"));
@@ -1071,9 +1073,6 @@ async function sendChatMessage() {
 
   renderRecipesFromText(data.reply);
 }
-
-
-
 
 
 // ============================
