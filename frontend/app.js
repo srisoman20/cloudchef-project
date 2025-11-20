@@ -139,11 +139,15 @@ const groceryPage = document.getElementById("groceryPage");
 document.getElementById("nav-generate").onclick = () => showPage("main");
 document.getElementById("nav-saved").onclick = () => showPage("saved");
 document.getElementById("nav-grocery").onclick = () => showPage("grocery");
+document.getElementById("nav-recommended").onclick = () => showPage("recommended");
+
 
 function showPage(page) {
   mainPage.classList.add("hidden");
   savedPage.classList.add("hidden");
   groceryPage.classList.add("hidden");
+  recommendedPage.classList.add("hidden");
+
 
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.classList.remove("active"));
 
@@ -157,6 +161,11 @@ function showPage(page) {
   } else if (page === "grocery") {
     groceryPage.classList.remove("hidden");
     document.getElementById("nav-grocery").classList.add("active");
+  }
+  else if (page === "recommended") {
+    recommendedPage.classList.remove("hidden");
+    document.getElementById("nav-recommended").classList.add("active");
+    showRecommendations(); // load recs when the page opens
   }
 }
 
@@ -214,8 +223,12 @@ async function getRecommendations() {
 }
 async function showRecommendations() {
   const recs = await getRecommendations();
+  const container = document.getElementById("recommendationList");
 
-  const container = document.getElementById("recommendations");
+  if (!recs || recs.length === 0) {
+    container.innerHTML = "<p>No recommendations yet.</p>";
+    return;
+  }
 
   container.innerHTML = recs.map(r => `
     <div class="recipe-card">
