@@ -262,6 +262,17 @@ nav {
   box-shadow: 0 6px 20px rgba(0,0,0,0.05);
 }
 
+.recipe-header h2 {
+  color: #ff7a42;
+  margin-bottom: 0.4rem;
+}
+
+.recipe-header .subtext {
+  color: #777;
+  margin-bottom: 1.2rem;
+  font-size: 0.9rem;
+}
+
 .recipe-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -273,8 +284,28 @@ nav {
   padding: 0;
 }
 
+.ingredients li {
+  background: #fff7f0;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* INSTRUCTIONS NUMBERING — ORANGE */
 .instructions ol {
   padding-left: 1.2rem;
+}
+
+.instructions li {
+  margin-bottom: 0.6rem;
+  line-height: 1.5;
+}
+
+.instructions ol li::marker {
+  color: #ff7a42;
+  font-weight: bold;
 }
 
 /* Save button */
@@ -289,77 +320,130 @@ nav {
   cursor: pointer;
 }
 
-/* =========================================
-   CHATBOX — FIXED FLOATING VERSION
-========================================= */
+/* === INLINE CHATBOX BELOW RECIPES — RESTORED === */
 #chatbox {
-  position: fixed;
-  bottom: 25px;
-  right: 25px;
-  width: 360px;
-  height: 480px;
-  background: white;
-  border-radius: 16px;
+  width: 92%;        
+  max-width: 950px;  
+  margin: 30px auto;
+  background: #fffaf4;
   border: 2px solid #ffb89a;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
   display: flex;
   flex-direction: column;
-  z-index: 9999;
 }
 
 #chatbox.hidden {
   display: none;
 }
 
+/* Chatbox Header */
 .chatbox-header {
-  padding: 12px 16px;
-  display: flex;
-  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+}
+
+.chatbox-header h3 {
+  margin: 0;
+  font-size: 18px;
   font-weight: 700;
   color: #ff7449;
 }
 
+.chatbox-header p {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #8b6f64;
+}
+
+/* === MESSAGE AREA === */
 .chatbox-messages {
-  flex: 1;
   background: #fffefc;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 10px;
+  height: 150px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border-radius: 12px;
-  margin: 0 12px;
+  gap: 8px;
 }
 
-/* BUBBLES */
+/* USER & BOT BUBBLES */
+.chat-user,
+.chat-bot {
+  width: fit-content;
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .chat-user {
   margin-left: auto;
   background: #ffe0d1;
-  padding: 10px 14px;
-  border-radius: 14px;
+  color: #333;
 }
 
 .chat-bot {
   margin-right: auto;
   background: #fff1e7;
   color: #ff7449;
-  padding: 10px 14px;
-  border-radius: 14px;
 }
 
-/* INPUT BAR */
-.chatbox-input {
+/* === TYPING LOADER === */
+.loader-container {
+  margin-right: auto;
+  background: #fff1e7;
+  color: #ff7449;
+  opacity: 0.9;
+  padding: 10px 14px;
+  border-radius: 14px;
   display: flex;
-  gap: 10px;
-  padding: 12px;
+  align-items: center;
+  gap: 6px;
+  font-style: italic;
+}
+
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.typing-dots span {
+  width: 6px;
+  height: 6px;
+  background: #ff7449;
+  border-radius: 50%;
+  animation: typingBlink 1s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1){animation-delay:0s;}
+.typing-dots span:nth-child(2){animation-delay:0.15s;}
+.typing-dots span:nth-child(3){animation-delay:0.3s;}
+
+@keyframes typingBlink {
+  0% {opacity: 0.2; transform: translateY(0);}
+  50% {opacity: 1; transform: translateY(-2px);}
+  100% {opacity: 0.2; transform: translateY(0);}
+}
+
+/* === INPUT BAR === */
+.chatbox-input {
   border-top: 1px solid #ffd8c3;
+  margin-top: 12px;
+  padding-top: 12px;
+  display: flex;
+  gap: 12px;
 }
 
 .chatbox-input input {
   flex: 1;
   padding: 12px;
-  border-radius: 12px;
   border: 1px solid #ffb89a;
+  border-radius: 12px;
+  font-size: 15px;
 }
 
 .chatbox-input button {
@@ -368,9 +452,11 @@ nav {
   border: none;
   border-radius: 10px;
   color: white;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
 }
+
 
 .recipe-card .nutrition-section {
   margin-top: 25px;
@@ -412,12 +498,113 @@ nav {
 }
 
 /* --- Improved spacing before suggestion --- */
+/* ORANGE SUGGESTION BOX */
 .suggestion-box {
-  margin-top: 30px !important;  /* EXTRA SPACE FROM NUTRITION FACTS */
-  background: #fff8f2;
+  background: #fffaf4;
   border-left: 4px solid #ff7a42;
-  border-radius: 12px;
-  padding: 16px 18px;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  margin-top: 30px;
+  font-size: 0.95rem;
+  color: #333;
+  line-height: 1.5;
+}
+
+.suggestion-box strong {
+  color: #ff7a42;
+}
+
+/* ORANGE “Add Ingredients to Grocery” */
+.suggestion-btn {
+  margin-left: 20px;
+  padding: 6px 12px;
+  background-color: #ff7b47;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.suggestion-btn:hover {
+  background-color: #ff5722;
+}
+
+/* ===========================
+   UPLOAD IMAGE SECTION
+   =========================== */
+
+.upload-description {
+  margin-top: 8px;
+  margin-bottom: 16px;
   font-size: 15px;
-  line-height: 1.55;
+  color: #6b5e57;
+}
+
+/* Container holding both rows (Upload + Detect) */
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;            /* space between rows */
+  margin-bottom: 22px;
+}
+
+/* First row: Upload button + filename */
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Upload Image button */
+.upload-image-btn {
+  background: #ff7449;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.upload-image-btn:hover {
+  background: #e86a33;
+  transform: translateY(-2px);
+}
+
+.upload-image-btn:active {
+  transform: scale(0.97);
+}
+
+/* Filename label */
+.upload-filename {
+  font-size: 15px;
+  color: #444;
+  font-style: italic;
+}
+
+/* Detect Ingredients button (now BELOW) */
+.detect-below {
+  width: 200px;                /* smaller width so it doesn’t stretch */
+  background: none;
+  border: 2px solid #ff7449;
+  color: #ff7449;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+  align-self: flex-start;      /* aligns left under the upload row */
+}
+
+.detect-below:hover {
+  background: #ffeedf;
+  transform: translateY(-2px);
+}
+
+.detect-below:active {
+  transform: scale(0.97);
 }

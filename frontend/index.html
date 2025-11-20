@@ -30,29 +30,59 @@
 
 
   <!-- MAIN PAGE CONTAINER -->
-  <div class="page-container">
+<div class="page-container">
 
-    <!-- GENERATE PAGE -->
-    <div id="mainPage" class="content-card">
-      <h2>What's in your fridge?</h2>
+  <!-- GENERATE PAGE -->
+  <div id="mainPage" class="content-card">
+    <h2>What's in your fridge?</h2>
 
-      <input type="file" id="imageUpload" accept="image/*" multiple />
+    <p class="upload-description">
+      Upload an image of your ingredients and/or type and add them below.
+    </p>
 
-      <div class="ingredient-row">
-        <input id="ingredientName" type="text" placeholder="Ingredient (e.g., tomato)">
-        <input id="ingredientQty" type="text" placeholder="Quantity">
-        <button class="add-btn" onclick="addIngredient()">+</button>
+    <div class="upload-section">
+      <div class="upload-row">
+        <button id="uploadBtn" class="upload-image-btn">Upload Image</button>
+        <span id="uploadFilename" class="upload-filename">No file chosen</span>
+        <input type="file" id="imageUpload" accept="image/*" multiple style="display:none;" />
       </div>
 
-      <ul id="ingredientList"></ul>
-
-      <div class="button-row">
-        <button id="generateBtn" class="primary-btn">Generate Recipe</button>
-        <button id="detectBtn" class="outline-btn">Detect Ingredients</button>
-      </div>
-
-      <div id="output" class="output-box"></div>
+      <!-- Detect Ingredients moved BELOW -->
+      <button id="detectBtn" class="outline-btn detect-below">Detect Ingredients</button>
     </div>
+
+
+    <div class="ingredient-row">
+      <input id="ingredientName" type="text" placeholder="Ingredient (e.g., tomato)">
+      <input id="ingredientQty" type="text" placeholder="Quantity">
+      <button class="add-btn" onclick="addIngredient()">+</button>
+    </div>
+
+    <ul id="ingredientList"></ul>
+
+    <div class="button-row">
+      <button id="generateBtn" class="primary-btn">Generate Recipe</button>
+    </div>
+
+    <div id="output" class="output-box"></div>
+
+    <!-- CHATBOX BELOW RECIPES -->
+    <div id="chatbox" class="chatbox hidden">
+      <div class="chatbox-header">
+        <h3>CloudChef Chat</h3>
+        <p>Type here to season the recipes to your liking…</p>
+      </div>
+
+      <div id="chatMessages" class="chatbox-messages"></div>
+
+      <div class="chatbox-input">
+        <input id="chatInput" type="text" placeholder="Ask CloudChef..." />
+        <button id="chatSend">Send</button>
+      </div>
+    </div>
+
+  </div>
+
 
 
     <!-- SAVED PAGE -->
@@ -95,24 +125,6 @@
   <div id="nutritionOutput"></div>
 </div>
 
-
-
-  <!-- SINGLE CHATBOX (REMOVED DUPLICATES) -->
-  <div id="chatbox" class="chatbox hidden">
-    <div class="chatbox-header">
-      <strong>CloudChef Chat</strong>
-      <button id="chatboxClose">✖</button>
-    </div>
-
-    <div id="chatMessages" class="chatbox-messages"></div>
-
-    <div class="chatbox-input">
-      <input id="chatInput" type="text" placeholder="Ask CloudChef...">
-      <button id="chatSend">Send</button>
-    </div>
-  </div>
-
-  <script src="app.js?v=12345"></script>
+<script src="app.js?v=12345"></script>
 </body>
 </html>
-
