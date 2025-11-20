@@ -135,11 +135,6 @@ async function initAuth() {
     // 🔥 SAVE REAL USER ID (SUB)
     const userId = payload.sub;
     localStorage.setItem("userId", userId);
-
-    // Display name
-    // 🔥 SAVE REAL USER ID (SUB)
-    const userId = payload.sub;
-    localStorage.setItem("userId", userId);
     localStorage.setItem("userId", payload.sub);
 
 
@@ -162,8 +157,6 @@ async function initAuth() {
     loginBtn.style.display = "none";
     logoutBtn.style.display = "inline-block";
     const storedUserId = localStorage.getItem("userId");
-
-    const storedUserId = localStorage.getItem("userId");
 
 
     loadGroceryList();
