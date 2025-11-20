@@ -199,13 +199,6 @@ const API_NUTRITION =
             </div>
           </div>
   
-          <!-- SUGGESTION -->
-          <div class="suggestion-box">
-            <strong>💡 Suggestion:</strong> Add your favorite herbs, cheese, or vegetables for extra flavor.
-            <button class="suggestion-btn" onclick="addIngredientsToGrocery(['${r.title}'])">
-              ➕ Add Ingredients to Grocery
-            </button>
-          </div>
   
         </div>
         `;
