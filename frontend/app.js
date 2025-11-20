@@ -560,10 +560,6 @@ async function generateRecipe() {
             suggestionsArr.length
               ? `<div class="suggestion-box">
                   <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
-                  <button class="suggestion-btn"
-                    onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
-                    ➕ Add Ingredients to Grocery
-                  </button>
                 </div>`
               : ""
           }
@@ -745,10 +741,6 @@ function renderRecipesFromText(recipeText) {
           suggestionsArr.length
             ? `<div class="suggestion-box">
                 <strong>💡 Suggestion:</strong> ${suggestionsArr.join(" ")}
-                <button class="suggestion-btn"
-                  onclick="addSuggestionToGrocery('${suggestionsArr.join(" ")}')">
-                  ➕ Add Ingredients to Grocery
-                </button>
               </div>`
             : ""
         }
@@ -1081,6 +1073,11 @@ const chatbox = document.getElementById("chatbox");
 const chatMessages = document.getElementById("chatMessages");
 const chatInput = document.getElementById("chatInput");
 
+// Close chatbox
+document.getElementById("chatboxClose").onclick = () => {
+  chatbox.classList.add("hidden");
+};
+
 // Send user message
 document.getElementById("chatSend").onclick = sendChatMessage;
 chatInput.addEventListener("keypress", e => {
@@ -1124,22 +1121,6 @@ document.getElementById("detectBtn").addEventListener("click", analyzeImage);
 document.getElementById("generateBtn").addEventListener("click", generateRecipe);
 // document.getElementById("saveBtn").addEventListener("click", saveRecipe);
 document.getElementById("nutritionGenerateBtn").addEventListener("click", generateNutritionRecipes);
-
-// Upload Image button behavior
-document.getElementById("uploadBtn").onclick = () => {
-  document.getElementById("imageUpload").click();
-};
-
-// Show selected file name
-document.getElementById("imageUpload").addEventListener("change", function () {
-  const fileNameSpan = document.getElementById("uploadFilename");
-  if (this.files.length > 0) {
-    fileNameSpan.textContent = this.files[0].name;
-  } else {
-    fileNameSpan.textContent = "No file chosen";
-  }
-});
-
 
 initAuth();
 
