@@ -260,7 +260,14 @@ nav {
   width: 90%;
   max-width: 900px;
   box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+
+  /* FIXES CUT-OFF BUG */
+  display: block;
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
 }
+
 
 .recipe-header h2 {
   color: #ff7a42;
@@ -275,7 +282,7 @@ nav {
 
 .recipe-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 2rem;
 }
 
@@ -464,15 +471,24 @@ nav {
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+  /* FIX: allow height to grow */
+  min-height: unset;
+  height: auto;
+  overflow: visible;
 }
 
-/* Smaller, tighter boxes */
+
 .recipe-card .nutrition-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
   gap: 18px;
   margin-top: 10px;
+
+  /* allow grid items to expand */
+  height: auto;
 }
+
 
 .recipe-card .nutrition-item {
   background: #fff;
@@ -607,4 +623,111 @@ nav {
 
 .detect-below:active {
   transform: scale(0.97);
+}
+
+.error-box {
+  background: #fff3e8;
+  border-left: 4px solid #ff7449;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: #7a4a39;
+  margin-top: 20px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ===========================
+   DETECT INGREDIENTS STATUS
+=========================== */
+
+.detect-status {
+  margin-left: 10px;
+  font-size: 14px;
+  color: #6b5e57;
+  font-weight: 500;
+}
+
+/* Animation dots */
+.detect-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.detect-dots span {
+  width: 6px;
+  height: 6px;
+  background: #ff7449;
+  border-radius: 50%;
+  display: inline-block;
+  animation: detectBlink 1s infinite ease-in-out;
+}
+
+.detect-dots span:nth-child(1) { animation-delay: 0s; }
+.detect-dots span:nth-child(2) { animation-delay: 0.15s; }
+.detect-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes detectBlink {
+  0% { opacity: 0.2; transform: translateY(0px); }
+  50% { opacity: 1; transform: translateY(-2px); }
+  100% { opacity: 0.2; transform: translateY(0px); }
+}
+
+/* Animated dots for recipe generator */
+.ai-loader {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.ai-loader span {
+  width: 8px;
+  height: 8px;
+  background: #ff7449;
+  border-radius: 50%;
+  display: inline-block;
+  animation: aiBlink 1s infinite ease-in-out;
+}
+
+.ai-loader span:nth-child(1) { animation-delay: 0s; }
+.ai-loader span:nth-child(2) { animation-delay: 0.2s; }
+.ai-loader span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes aiBlink {
+  0%   { opacity: 0.3; transform: translateY(0); }
+  50%  { opacity: 1;   transform: translateY(-3px); }
+  100% { opacity: 0.3; transform: translateY(0); }
+}
+
+/* Nutrition recipe loading animation */
+.nutrition-loading {
+  font-size: 16px;
+  color: #444;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  background: #ff7449;
+  border-radius: 50%;
+  animation: dotBlink 1s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.15s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes dotBlink {
+  0%   { opacity: 0.2; transform: translateY(0px); }
+  50%  { opacity: 1;   transform: translateY(-3px); }
+  100% { opacity: 0.2; transform: translateY(0px); }
 }
