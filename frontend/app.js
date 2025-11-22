@@ -317,15 +317,17 @@ document.getElementById("nav-generate").onclick = () => showPage("main");
 document.getElementById("nav-saved").onclick = () => {
   if (!requireLogin()) return;
 
-  showPage("savedPage");
+  showPage("saved");
   highlightNav("nav-saved");
 };
+
 document.getElementById("nav-grocery").onclick = () => {
   if (!requireLogin()) return;
 
-  showPage("groceryPage");
+  showPage("grocery");
   highlightNav("nav-grocery");
 };
+
 document.getElementById("nav-nutrition").onclick = () => showPage("nutrition");
 
 
