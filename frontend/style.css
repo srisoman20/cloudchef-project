@@ -731,3 +731,8 @@ nav {
   50%  { opacity: 1;   transform: translateY(-3px); }
   100% { opacity: 0.2; transform: translateY(0px); }
 }
+
+.active-nav {
+  color: #ff7449 !important;
+  font-weight: 600;
+}

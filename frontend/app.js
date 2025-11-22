@@ -409,8 +409,16 @@ function renderIngredients() {
     .join("");
 }
 
+// ============================
+// SIMPLE NAV HIGHLIGHT FIX
+// ============================
+function highlightNav(page) {
+  const links = document.querySelectorAll(".nav-link");
+  links.forEach(l => l.classList.remove("active-nav"));
 
-
+  const active = document.getElementById(`nav-${page}`);
+  if (active) active.classList.add("active-nav");
+}
 
 // ============================
 // UPDATED GENERATE RECIPE (with Save Buttons)
