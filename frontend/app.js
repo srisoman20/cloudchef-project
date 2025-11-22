@@ -1235,85 +1235,60 @@ async function sendChatMessage() {
       body: JSON.stringify(payload)
     });
 
+    // Network / API failure
     if (!res.ok) {
       hideLoadingMessage();
-      addMessage("bot", "❌ Sorry, I couldn't process that right now. Please try again.");
-      return;
+      addMessage("bot", "❌ Sorry, I wasn't able to update the recipes. Please try again.");
+      return;  // STOP EXECUTION
     }
 
     data = await res.json();
   } catch (err) {
     hideLoadingMessage();
-    addMessage("bot", "❌ Network error. Please try again.");
-    return;
+    addMessage("bot", "❌ Network error, please try again.");
+    return; // STOP EXECUTION
   }
 
   hideLoadingMessage();
 
-  const reply = data?.reply || "";
-
-  // ==============================
-  // 1. If reply is empty or invalid
-  // ==============================
-  if (!reply || typeof reply !== "string" || reply.trim().length < 3) {
-    addMessage("bot", "❌ Sorry, I couldn't understand that.");
-    return;
+  // Invalid AI response
+  if (!data || !data.reply || typeof data.reply !== "string") {
+    addMessage("bot", "❌ I couldn't update the recipes with that request.");
+    return;  // STOP EXECUTION
   }
 
-  const lower = reply.toLowerCase();
+  const lower = data.reply.toLowerCase();
 
-  // ===========================================================
-  // 2. Detect conversational / refusal / non-recipe responses
-  // ===========================================================
-  const refusalPatterns = [
-    "i apologize",
-    "i'm sorry",
-    "cannot",
-    "unable",
-    "i can't",
-    "i dont have",
-    "as an ai",
-    "i understand you're",
-    "hello",
-    "hi ",
-    "hey",
-    "what can i help",
-    "how can i help"
-  ];
-
-  if (refusalPatterns.some(p => lower.includes(p))) {
-    addMessage("bot", reply);
-    return;
+  // Error / apology patterns ALWAYS stay inside chatbox
+  if (
+    lower.includes("i apologize") ||
+    lower.includes("i'm sorry") ||
+    lower.includes("cannot") ||
+    lower.includes("unable") ||
+    lower.includes("don't have") ||
+    lower.includes("haven't specified") ||
+    lower.includes("please provide")
+  ) {
+    addMessage("bot", data.reply);
+    return;  // STOP EXECUTION — DO NOT UPDATE RECIPES
   }
 
-  // ===========================================================
-  // 3. Detect if Claude actually returned recipe content
-  // ===========================================================
-  const looksLikeARecipe =
-    lower.includes("ingredients") ||
-    lower.includes("instructions") ||
+  // Check if Claude actually returned recipes (detect keyword patterns)
+  const looksLikeRecipe =
     lower.includes("recipe 1") ||
-    lower.includes("recipe:") ||
-    /recipe\s*\d+/i.test(lower);
+    lower.includes("ingredients") && lower.includes("instructions");
 
-  // If no recipe-like structure found → keep reply in chat only
-  if (!looksLikeARecipe) {
-    addMessage("bot", reply);
+  if (!looksLikeRecipe) {
+    // Treat as normal conversation → chatbox only
+    addMessage("bot", data.reply);
     return;
   }
 
-  // ===========================================================
-  // 4. Attempt recipe rendering — IF it has recipe structure
-  // ===========================================================
-  try {
-    addMessage("bot", "Updated recipes generated!");
-    renderRecipesFromText(reply);
-  } catch (err) {
-    console.error("Render error:", err);
-    addMessage("bot", "⚠️ I understood your message but couldn't format the recipes. Here's my raw reply:");
-    addMessage("bot", reply);
-  }
+  // SUCCESS — valid updated recipes
+  addMessage("bot", "Updated recipes generated!");
+  renderRecipesFromText(data.reply);
 }
+
 
 
 
